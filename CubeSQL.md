@@ -1,6 +1,6 @@
 SQL-based language for querying cubes.
 
-Go to [CubeSQL.ebnf](CubeSQL.ebnf) for formal definition.
+Go to [CubeSQL.ebnf](CubeSQL.ebnf) for formal definition. Copy & paste the EBNF into http://www.bottlecaps.de/rr/ui to see pretty diagrams.
 
 ## Example queries
 
