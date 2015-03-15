@@ -34,7 +34,7 @@ namespace proto
 		return read_internal(ss);
 	}
 
-	auto parse(const string& in) -> std::vector<value>
+	auto unserialize(const string& in) -> std::vector<value>
 	{
 		auto out = std::vector<value>{};
 		stringstream ss{in, ios_base::in};

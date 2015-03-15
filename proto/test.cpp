@@ -7,14 +7,14 @@ using namespace std;
 
 void testParse()
 {
-	auto elems = proto::parse(string(1, char(5)) + "hello");
+	auto elems = proto::unserialize(string(1, char(5)) + "hello");
 	assert(elems.size() == 1);
 	assert(elems[0] == string("hello"));
 }
 
 void testParseMulti()
 {
-	auto elems = proto::parse(string(1, char(5)) + "hello" + string(1, char(1)) + "W");
+	auto elems = proto::unserialize(string(1, char(5)) + "hello" + string(1, char(1)) + "W");
 	assert(elems.size() == 2);
 	assert(elems[0] == string("hello"));
 	assert(elems[1] == string("W"));
@@ -53,7 +53,7 @@ void testReal()
 {
 	auto data = vector<string>{"Janusz", "1992", "2015-03-01", "1000", "50"};
 	auto s = proto::serialize(data);
-	auto d = proto::parse(s);
+	auto d = proto::unserialize(s);
 	assert(d.size() == data.size());
 	for (auto i = 0; i < data.size(); ++i)
 		assert(d[i] == data[i]);
@@ -63,7 +63,7 @@ void testRealInt()
 {
 	auto data = vector<proto::value>{"Janusz", 1992, "2015-03-01", 1000, 50};
 	auto s = proto::serialize(data);
-	auto d = proto::parse(s);
+	auto d = proto::unserialize(s);
 	assert(d.size() == data.size());
 	for (auto i = 0; i < data.size(); ++i)
 		assert(d[i] == data[i]);
@@ -81,7 +81,7 @@ void testCoolSerialize()
 {
 	auto data = vector<proto::value>{"Janusz", 1992, "2015-03-01", 1000, 50};
 	auto s = proto::serialize("Janusz", 1992, "2015-03-01", 1000, 50);
-	auto d = proto::parse(s);
+	auto d = proto::unserialize(s);
 	assert(d.size() == data.size());
 	for (auto i = 0; i < data.size(); ++i)
 		assert(d[i] == data[i]);
@@ -122,6 +122,17 @@ void testCoolReal()
 	assert(friends == 50);
 }
 
+void testEvenCooler()
+{
+	auto s = proto::serialize("Janusz", 1992, "2015-03-01", 1000, 50);
+	auto d = proto::unserialize(s);
+	assert(d[0] == "Janusz");
+	assert(d[1] == 1992);
+	assert(d[2] == "2015-03-01");
+	assert(d[3] == 1000);
+	assert(d[4] == 50);
+}
+
 int main(int argc, char** argv)
 {
 	testParse();
@@ -134,5 +145,6 @@ int main(int argc, char** argv)
 	testCoolSerialize();
 	testCoolUnserialize();
 	testCoolReal();
+	testEvenCooler();
 	cout << "OK" << endl;
 }

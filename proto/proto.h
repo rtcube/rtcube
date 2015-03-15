@@ -25,16 +25,34 @@ namespace proto
 	};
 
 	inline auto operator==(const value& a, const value& b)  {return a.data == b.data;}
+
 	inline auto operator==(const value& a, const string& b) {return a.data == b;}
 	inline auto operator==(const string& a, const value& b) {return a == b.data;}
 
+	inline auto operator==(const value& a, const char* b) {return a.data == b;}
+	inline auto operator==(const char* a, const value& b) {return a == b.data;}
+
+	inline auto operator==(const value& a, int b) {return int(a) == b;}
+	inline auto operator==(int a, const value& b) {return a == int(b);}
+
+	inline auto operator==(const value& a, float b) {return float(a) == b;}
+	inline auto operator==(float a, const value& b) {return a == float(b);}
+
 	auto read(std::istream& in) -> std::optional<value>;
-	auto parse(const string& in) -> std::vector<value>;
+	auto unserialize(const string& in) -> std::vector<value>;
+	template <typename... T>
+	auto unserialize(const string& in) -> std::tuple<T...>;
 
 	auto write(std::ostream& out, const value&) -> void;
 	auto serialize(const std::vector<value>&) -> string;
 	auto serialize(const std::vector<string>&) -> string;
+	template <typename... T>
+	inline auto serialize(const T&... arg) -> string;
+}
 
+// Implementation
+namespace proto
+{
 	inline auto serialize_internal(string i)
 	{
 		return std::move(i);
