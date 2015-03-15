@@ -59,6 +59,24 @@ void testReal()
 		assert(d[i] == data[i]);
 }
 
+void testRealInt()
+{
+	auto data = vector<proto::value>{"Janusz", 1992, "2015-03-01", 1000, 50};
+	auto s = proto::serialize(data);
+	auto d = proto::parse(s);
+	assert(d.size() == data.size());
+	for (auto i = 0; i < data.size(); ++i)
+		assert(d[i] == data[i]);
+	assert(int(d[1]) == 1992);
+
+	try
+	{
+		std::cout << int(d[0]) << std::endl; // cout is required, so compiler won't optimize int() away.
+		assert(false);
+	}
+	catch (std::domain_error&) {}
+}
+
 void testCoolSerialize()
 {
 	auto data = vector<proto::value>{"Janusz", 1992, "2015-03-01", 1000, 50};
@@ -112,6 +130,7 @@ int main(int argc, char** argv)
 	testSerialize();
 	testWrite();
 	testReal();
+	testRealInt();
 	testCoolSerialize();
 	testCoolUnserialize();
 	testCoolReal();
