@@ -32,22 +32,28 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	char buffer[2048];
-	socklen_t addr_len;
-
-	auto len = recvfrom(s, buffer, 2048, 0, (::sockaddr*) &sin6, &addr_len);
-	if (len <= 0)
+	for (;;)
 	{
-		perror("Receiving packet.");
-		return 1;
+		char buffer[2048];
+		socklen_t addr_len;
+
+		auto len = recvfrom(s, buffer, 2048, 0, (::sockaddr*) &sin6, &addr_len);
+		if (len <= 0)
+		{
+			perror("Receiving packet.");
+			return 1;
+		}
+
+		auto msg = string{buffer, string::size_type(len)};
+		auto V = proto::unserialize(msg);
+
+		for (auto v : V)
+			std::cout << v.data << " ";
+		std::cout << std::endl;
+
+		if (V.size() == 1 && V[0] == "DIE")
+			break;
 	}
-
-	auto msg = string{buffer, string::size_type(len)};
-	auto V = proto::unserialize(msg);
-
-	for (auto v : V)
-		std::cout << v.data << " ";
-	std::cout << std::endl;
 
 	return 0;
 }

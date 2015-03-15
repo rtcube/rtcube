@@ -8,6 +8,7 @@ test_proto: bin/tests/test_proto
 test_server: bin/server bin/send
 	./bin/server "[::]:2121" &
 	./bin/send "[::1]:2121" hello world
+	./bin/send "[::1]:2121" DIE
 
 .dirs:
 	mkdir -p bin bin/tests
