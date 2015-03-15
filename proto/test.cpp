@@ -61,7 +61,7 @@ void testReal()
 
 void testCoolSerialize()
 {
-	auto data = vector<string>{"Janusz", proto::encode(1992), "2015-03-01", proto::encode(1000), proto::encode(50)};
+	auto data = vector<proto::value>{"Janusz", 1992, "2015-03-01", 1000, 50};
 	auto s = proto::serialize("Janusz", 1992, "2015-03-01", 1000, 50);
 	auto d = proto::parse(s);
 	assert(d.size() == data.size());
@@ -77,7 +77,7 @@ auto my_tuple_size(T) -> size_t
 
 void testCoolUnserialize()
 {
-	auto data = vector<string>{"Janusz", proto::encode(1992), "2015-03-01", proto::encode(1000), proto::encode(50)};
+	auto data = vector<proto::value>{"Janusz", 1992, "2015-03-01", 1000, 50};
 	auto s = proto::serialize(data);
 	auto d = proto::unserialize<string, int, string, int, int>(s);
 	assert(my_tuple_size(d) == data.size());
