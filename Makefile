@@ -1,4 +1,4 @@
-all: test_proto test_tokenizer bin/send bin/server
+all: test_proto test_tokenizer bin/send bin/server bin/row-generator
 
 test: test_proto test_tokenizer test_server
 
@@ -34,3 +34,6 @@ bin/send: util/* proto/* send/* .dirs
 
 bin/server: util/* proto/* server/* .dirs
 	g++ --std=c++14 -I cxxcompat/include proto/proto.cpp server/server.cpp -o ./bin/server
+
+bin/row_generator:	
+	g++ --std=c++14 -I cxxcompat/include proto/proto.cpp row-generator/RowGenerator.cpp -o ./bin/row_generator
