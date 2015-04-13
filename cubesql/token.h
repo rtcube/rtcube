@@ -1,5 +1,6 @@
 #pragma once
 
+#include "types.h"
 #include <string>
 
 namespace CubeSQL
@@ -7,6 +8,7 @@ namespace CubeSQL
 	struct token
 	{
 		std::string code;
+		AnyAtom val;
 
 		inline token() {}
 		inline token(const std::string& code): code(code) {}

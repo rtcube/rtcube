@@ -49,5 +49,17 @@ LIMIT
 		assert(tokens[i].code == correct_tokens[i]);
 	}
 
+	assert(tokens[15].val == 1980ll);
+	assert(tokens[17].val == 1997ll);
+	assert(tokens[23].val == string{"Warszawa"});
+	assert(tokens[25].val == string{"Kraków"});
+	assert(tokens[30].val == 10ll);
+	assert(tokens[34].val == 1ll);
+	assert(tokens[36].val == 3ll);
+	assert(tokens[38].val == 5ll);
+	assert(tokens[40].val == 7ll);
+	assert(tokens[42].val == 9ll);
+	assert(tokens[52].val == 5ll);
+
 	cout << "OK" << endl;
 }

@@ -44,6 +44,44 @@ static bool is_quote(char x)
 	return false;
 }
 
+// TODO support \' (or sth like that)
+void read_string(token& t, const std::string& data, size_t& i)
+{
+	auto begin = i;
+	auto quote = data[begin];
+	++i;
+	while (i < data.size() && data[i] != quote)
+		++i;
+	if (data[i] != quote) // EOF
+		throw std::invalid_argument("CubeSQL::tokenize");
+	++i;
+
+	t.code = data.substr(begin, i-begin);
+	t.val = t.code.substr(1, t.code.size()-2);
+}
+
+void try_parse_as_number(token& t)
+{
+	bool dot = false;
+	for (auto c : t.code)
+	{
+		if (c == '.')
+		{
+			if (!dot)
+				dot = true;
+			else
+				return; // Two dots!
+		}
+		else if (!isdigit(c))
+			return;
+	}
+
+	if (!dot)
+		t.val = std::stoll(t.code);
+	else
+		t.val = std::stod(t.code);
+}
+
 auto tokenize(std::string data) -> std::vector<token>
 {
 	auto i = size_t{0};
@@ -68,15 +106,7 @@ auto tokenize(std::string data) -> std::vector<token>
 
 		if (is_quote(data[i]))
 		{
-			auto begin = i;
-			auto quote = data[begin];
-			++i;
-			while (i < data.size() && data[i] != quote)
-				++i;
-			if (data[i] != quote) // EOF
-				throw std::invalid_argument("CubeSQL::tokenize");
-			++i;
-			t.code = data.substr(begin, i-begin);
+			read_string(t, data, i);
 			tokens.push_back(t);
 			continue;
 		}
@@ -87,6 +117,7 @@ auto tokenize(std::string data) -> std::vector<token>
 		while (i < data.size() && !is_special_char(data[i]) && !is_quote(data[i]) && !is_space(data[i]))
 			++i;
 		t.code = data.substr(begin, i-begin);
+		try_parse_as_number(t);
 		tokens.push_back(t);
 		continue;
 	}
