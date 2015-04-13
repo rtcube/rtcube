@@ -20,27 +20,40 @@ struct token_stream
 	const std::vector<token>& tokens;
 	int i;
 
+	auto is_end()
+	{
+		return i >= tokens.size();
+	}
+
+	auto match_end()
+	{
+		if (!is_end())
+			throw std::invalid_argument("CubeSQL::parse");
+	}
+
 	auto match(const char* code)
 	{
-		if (!iequals(tokens[i].code, code))
+		if (is_end() || !iequals(tokens[i].code, code))
 			throw std::invalid_argument("CubeSQL::parse");
 		++i;
 	}
 
 	auto try_match(const char* code)
 	{
-		if (!iequals(tokens[i].code, code))
+		if (is_end() || !iequals(tokens[i].code, code))
 			return false;
 		++i;
 	}
 
 	auto is(const char* code)
 	{
-		return iequals(tokens[i].code, code);
+		return !is_end() && iequals(tokens[i].code, code);
 	}
 
 	auto readLabel() -> std::string
 	{
+		if (is_end())
+			throw std::invalid_argument("CubeSQL::parse");
 		return tokens[i++].code;
 	}
 
@@ -62,7 +75,7 @@ auto token_stream::is<AnyAtom>() -> bool
 template<>
 auto token_stream::read<AnyAtom>() -> AnyAtom
 {
-	auto v = tokens[i].val;
+	auto v = tokens[i++].val;
 	if (!v)
 		throw std::invalid_argument("CubeSQL::parse");
 	return v;
@@ -79,7 +92,7 @@ auto token_stream::read<int>() -> int
 {
 	if (!is<int>())
 		throw std::invalid_argument("CubeSQL::parse");
-	return Int(tokens[i].val);
+	return Int(tokens[i++].val);
 }
 
 // Expr ::= FieldName | Constant | Operation '(' Expr ( ',' Expr )* ')'
@@ -178,6 +191,8 @@ auto parse(const std::vector<token>& data) -> Select
 			s.limit = t.read<int>();
 		}
 	}
+
+	t.match_end();
 
 	return s;
 }
