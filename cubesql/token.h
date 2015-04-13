@@ -12,5 +12,6 @@ namespace CubeSQL
 
 		inline token() {}
 		inline token(const std::string& code): code(code) {}
+		inline token(const char* code): code(code) {}
 	};
 }

@@ -44,6 +44,11 @@ namespace CubeSQL
 		TriType(TFloat v):         type(Float),  f(v) {}
 		TriType(const TString& v): type(String), s(v) {}
 
+		explicit operator bool() const { return type != Empty; }
+		explicit operator TInt() const { return i; }
+		explicit operator TFloat() const { return f; }
+		explicit operator TString() const { return s; }
+
 		TriType& operator=(TInt v)    {type = Int;    i = v;}
 		TriType& operator=(TFloat v)  {type = Float;  f = v;}
 		TriType& operator=(TString v) {type = String; s = v;}
