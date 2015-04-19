@@ -1,4 +1,4 @@
-all: test_proto test_tokenizer bin/send bin/server bin/row-generator
+all: test_proto test_tokenizer bin/send bin/server bin/row_generator
 
 test: test_proto test_tokenizer test_server
 
