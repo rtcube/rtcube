@@ -319,15 +319,15 @@ auto parse(const std::vector<token>& data) -> Select
 
 auto colType(std::string type) -> ColType
 {
-	if (type == "INT")
+	if (iequals(type, "INT"))
 		return ColType::Int;
-	if (type == "FLOAT")
+	if (iequals(type, "FLOAT"))
 		return ColType::Float;
-	if (type == "TIME")
+	if (iequals(type, "TIME"))
 		return ColType::Time;
-	if (type == "TEXT")
+	if (iequals(type, "TEXT"))
 		return ColType::Text;
-	if (type == "CHAR")
+	if (iequals(type, "CHAR"))
 		return ColType::Char;
 }
 

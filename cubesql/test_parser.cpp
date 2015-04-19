@@ -91,7 +91,7 @@ dim recv TIME,
 
 dim yob <1900,2015>,
 dim commune CHAR[7],
-dim locality TEXT,
+dim locality text,
 dim pesel CHAR[11],
 
 mea signatures <0,1000000>,
