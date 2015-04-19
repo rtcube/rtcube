@@ -317,4 +317,73 @@ auto parse(const std::vector<token>& data) -> Select
 	return s;
 }
 
+auto colType(std::string type) -> ColType
+{
+	if (type == "INT")
+		return ColType::Int;
+	if (type == "FLOAT")
+		return ColType::Float;
+	if (type == "TIME")
+		return ColType::Time;
+	if (type == "TEXT")
+		return ColType::Text;
+	if (type == "CHAR")
+		return ColType::Char;
+}
+
+auto readColDef(token_stream& t) -> ColDef
+{
+	auto def = ColDef{t.readLabel()};
+	if (t.is<AnySet>())
+	{
+		def.s = t.read<AnySet>();
+		def.type = ColType::Set;
+	}
+	else if (t.is<AnyRange>())
+	{
+		def.r = t.read<AnyRange>();
+		if (def.r.type == Type::Int)
+			def.type = ColType::IntRange;
+		else if (def.r.type == Type::Float)
+			def.type = ColType::FloatRange;
+		else
+			throw std::invalid_argument("CubeSQL::parse");
+	}
+	else
+		def.type = colType(t.readLabel());
+
+	if (t.try_match("["))
+	{
+		def.len = t.read<int>();
+		t.match("]");
+	}
+
+	return def;
+}
+
+auto parseCubeDef(const std::vector<token>& data) -> CubeDef
+{
+	auto t = token_stream{data};
+
+	auto def = CubeDef{};
+
+	while (t.try_match("DIM") || t.try_match("DIMENSION"))
+	{
+		def.dims.push_back(readColDef(t));
+
+		if (!t.is_end())
+			t.match(",");
+	}
+
+	while (t.try_match("MEA") || t.try_match("MEASURE"))
+	{
+		def.meas.push_back(readColDef(t));
+
+		if (!t.is_end())
+			t.match(",");
+	}
+
+	return def;
+}
+
 }

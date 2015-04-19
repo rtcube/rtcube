@@ -7,7 +7,7 @@
 using namespace std;
 
 
-int main(int argc, char** argv)
+void testSelect()
 {
 	auto tokens = CubeSQL::tokenize(R"(
 SELECT
@@ -82,4 +82,60 @@ LIMIT
 	assert(q.offset == 0);
 
 	cout << "OK" << endl;
+}
+
+void testCubeDef()
+{
+	auto tokens = CubeSQL::tokenize(R"(
+dim recv TIME,
+
+dim yob <1900,2015>,
+dim commune CHAR[7],
+dim locality TEXT,
+dim pesel CHAR[11],
+
+mea signatures <0,1000000>,
+mea applications <0,100000>)");
+
+	auto cube = CubeSQL::parseCubeDef(tokens);
+
+	assert(cube.dims.size() == 5);
+	assert(cube.meas.size() == 2);
+
+	assert(cube.dims[0].name == "recv");
+	assert(cube.dims[0].type == CubeSQL::ColType::Time);
+	assert(cube.dims[0].len == 1);
+
+	assert(cube.dims[1].name == "yob");
+	assert(cube.dims[1].type == CubeSQL::ColType::IntRange);
+	assert(cube.dims[1].len == 1);
+	assert(cube.dims[1].r == CubeSQL::Range<CubeSQL::Int>(true, true, 1900, 2015));
+
+	assert(cube.dims[2].name == "commune");
+	assert(cube.dims[2].type == CubeSQL::ColType::Char);
+	assert(cube.dims[2].len == 7);
+
+	assert(cube.dims[3].name == "locality");
+	assert(cube.dims[3].type == CubeSQL::ColType::Text);
+	assert(cube.dims[3].len == 1);
+
+	assert(cube.dims[4].name == "pesel");
+	assert(cube.dims[4].type == CubeSQL::ColType::Char);
+	assert(cube.dims[4].len == 11);
+
+	assert(cube.meas[0].name == "signatures");
+	assert(cube.meas[0].type == CubeSQL::ColType::IntRange);
+	assert(cube.meas[0].len == 1);
+	assert(cube.meas[0].r == CubeSQL::Range<CubeSQL::Int>(true, true, 0, 1000000));
+
+	assert(cube.meas[1].name == "applications");
+	assert(cube.meas[1].type == CubeSQL::ColType::IntRange);
+	assert(cube.meas[1].len == 1);
+	assert(cube.meas[1].r == CubeSQL::Range<CubeSQL::Int>(true, true, 0, 100000));
+}
+
+int main(int argc, char** argv)
+{
+	testSelect();
+	testCubeDef();
 }
