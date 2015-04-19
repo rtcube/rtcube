@@ -1,6 +1,6 @@
-all: test_proto test_tokenizer bin/send bin/server bin/row_generator
+all: test_proto test_tokenizer test_parser bin/send bin/server bin/row_generator
 
-test: test_proto test_tokenizer test_server
+test: test_proto test_tokenizer test_parser test_server
 
 test_proto: bin/tests/test_proto
 	./bin/tests/test_proto
