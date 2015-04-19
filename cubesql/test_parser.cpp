@@ -16,6 +16,8 @@ WHERE
     yob IN <1980, 1997>
 AND
     locality IN {"Warszawa", "Kraków"}
+AND
+    pesel[10] IN {1, 3, 5, 7, 9}
 ORDER BY
     SUM(signatures) DESC
 LIMIT
@@ -44,7 +46,7 @@ LIMIT
 	}
 
 	{
-		assert(q.where.size() == 2);
+		assert(q.where.size() == 3);
 
 		assert(q.where[0].field_name == "yob");
 		assert(!q.where[0].array_specifier);
@@ -56,6 +58,13 @@ LIMIT
 		assert(q.where[1].op == CubeSQL::Condition::IN);
 		auto WK = CubeSQL::Set<CubeSQL::String>{string{"Warszawa"}, string{"Kraków"}};
 		assert(q.where[1].s == WK);
+
+		assert(q.where[2].field_name == "pesel");
+		assert(q.where[2].array_specifier);
+		assert(*q.where[2].array_specifier == 10ll);
+		assert(q.where[2].op == CubeSQL::Condition::IN);
+		auto s = CubeSQL::Set<CubeSQL::Int>{1, 3, 5, 7, 9};
+		assert(q.where[2].s == s);
 	}
 
 	{
