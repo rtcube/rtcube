@@ -20,7 +20,18 @@ test_server: bin/server bin/send
 	mkdir -p bin bin/tests
 	touch .dirs
 
+gcc:
+	mkdir gcc
+	cd gcc; wget https://www.archlinux.org/packages/core/x86_64/gcc/download/ -O gcc.tar.xz
+	cd gcc; wget https://www.archlinux.org/packages/core/x86_64/libmpc/download/ -O libmpc.tar.xz
+	cd gcc; tar -xvf gcc.tar.xz
+	cd gcc; tar -xvf libmpc.tar.xz
+	cd gcc; [ -f /usr/lib/x86_64-linux-gnu/crti.o ] && ln -s /usr/lib/x86_64-linux-gnu/crt* usr/lib/ || true
+
 CXX=g++
+#Use this to switch to gcc downloaded with make gcc:
+#CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static
+
 CXX14=$(CXX) --std=c++14 -I cxxcompat/include
 
 bin/tests/test_proto: util/* proto/* .dirs
