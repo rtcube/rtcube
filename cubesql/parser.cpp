@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 using std::string;
+using std::move;
 
 namespace CubeSQL {
 
@@ -100,8 +101,29 @@ auto readExpr(token_stream& t) -> AnyExpr
 {
 	if (t.is<AnyAtom>())
 		return std::make_unique<ConstantExpr>(t.read<AnyAtom>());
-	// TODO
-	return {};
+
+	auto name = t.readLabel();
+
+	if (t.try_match("("))
+	{
+		auto expr = std::make_unique<OperationExpr>(move(name));
+		do
+		{
+			expr->args.push_back(readExpr(t));
+		} while (t.try_match(","));
+		t.match(")");
+		return move(expr);
+	}
+
+	auto expr = std::make_unique<FieldNameExpr>(name);
+
+	if (t.try_match("["))
+	{
+		expr->index = t.read<int>();
+		t.match("]");
+	}
+
+	return move(expr);
 };
 
 auto readCondition(token_stream& t) -> Condition

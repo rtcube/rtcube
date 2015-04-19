@@ -16,8 +16,10 @@ namespace CubeSQL
 
 	struct FieldNameExpr: public Expr
 	{
-		std::string field_name;
-		std::optional<int> array_specifier;
+		std::string name;
+		std::optional<int> index;
+		FieldNameExpr(std::string&& n): name(std::move(n)) {}
+		FieldNameExpr(const std::string& n): name(n) {}
 	};
 
 	struct ConstantExpr: public Expr
@@ -29,8 +31,10 @@ namespace CubeSQL
 
 	struct OperationExpr : public Expr
 	{
-		std::string operation_name;
+		std::string name;
 		std::vector<AnyExpr> args;
+		OperationExpr(std::string&& n): name(std::move(n)) {}
+		OperationExpr(const std::string& n): name(n) {}
 	};
 
 	struct Condition
