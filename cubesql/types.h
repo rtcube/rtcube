@@ -16,7 +16,21 @@ namespace CubeSQL
 		bool right_inclusive;
 		T left;
 		T right;
+		Range() {}
+		Range(bool left_inclusive, bool right_inclusive, T left, T right): left_inclusive(left_inclusive), right_inclusive(right_inclusive), left(left), right(right) {}
 	};
+
+	template <typename T>
+	inline bool operator==(const Range<T>& a, const Range<T>& b)
+	{
+		return a.left_inclusive == b.left_inclusive && a.right_inclusive == b.right_inclusive && a.left == b.left && a.right == b.right;
+	}
+
+	template <typename T>
+	inline bool operator!=(const Range<T>& a, const Range<T>& b)
+	{
+		return !(a == b);
+	}
 
 	template <typename T>
 	struct Set
