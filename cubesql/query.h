@@ -40,7 +40,7 @@ namespace CubeSQL
 	struct Condition
 	{
 		std::string field_name;
-		std::optional<int> array_specifier;
+		std::optional<int> index;
 		enum Operator
 		{
 			E,

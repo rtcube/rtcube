@@ -49,19 +49,19 @@ LIMIT
 		assert(q.where.size() == 3);
 
 		assert(q.where[0].field_name == "yob");
-		assert(!q.where[0].array_specifier);
+		assert(!q.where[0].index);
 		assert(q.where[0].op == CubeSQL::Condition::IN);
 		assert(q.where[0].r == CubeSQL::Range<CubeSQL::Int>(true, true, 1980, 1997));
 
 		assert(q.where[1].field_name == "locality");
-		assert(!q.where[1].array_specifier);
+		assert(!q.where[1].index);
 		assert(q.where[1].op == CubeSQL::Condition::IN);
 		auto WK = CubeSQL::Set<CubeSQL::String>{string{"Warszawa"}, string{"Kraków"}};
 		assert(q.where[1].s == WK);
 
 		assert(q.where[2].field_name == "pesel");
-		assert(q.where[2].array_specifier);
-		assert(*q.where[2].array_specifier == 10ll);
+		assert(q.where[2].index);
+		assert(*q.where[2].index == 10ll);
 		assert(q.where[2].op == CubeSQL::Condition::IN);
 		auto s = CubeSQL::Set<CubeSQL::Int>{1, 3, 5, 7, 9};
 		assert(q.where[2].s == s);

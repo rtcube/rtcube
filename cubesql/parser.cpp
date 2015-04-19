@@ -230,7 +230,7 @@ auto readCondition(token_stream& t) -> Condition
 	c.field_name = t.readLabel();
 	if (t.try_match("["))
 	{
-		c.array_specifier = t.read<int>();
+		c.index = t.read<int>();
 		t.match("]");
 	}
 
