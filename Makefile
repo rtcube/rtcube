@@ -20,20 +20,23 @@ test_server: bin/server bin/send
 	mkdir -p bin bin/tests
 	touch .dirs
 
+CXX=g++
+CXX14=$(CXX) --std=c++14 -I cxxcompat/include
+
 bin/tests/test_proto: util/* proto/* .dirs
-	g++ --std=c++14 -I cxxcompat/include proto/test.cpp proto/proto.cpp -o ./bin/tests/test_proto
+	$(CXX14) proto/test.cpp proto/proto.cpp -o ./bin/tests/test_proto
 
 bin/tests/test_tokenizer: util/* cubesql/* .dirs
-	g++ --std=c++14 -I cxxcompat/include cubesql/test_tokenizer.cpp cubesql/tokenizer.cpp -o ./bin/tests/test_tokenizer
+	$(CXX14) cubesql/test_tokenizer.cpp cubesql/tokenizer.cpp -o ./bin/tests/test_tokenizer
 
 bin/tests/test_parser: util/* cubesql/* .dirs
-	g++ --std=c++14 -I cxxcompat/include cubesql/test_parser.cpp cubesql/tokenizer.cpp cubesql/query.cpp cubesql/parser.cpp -o ./bin/tests/test_parser
+	$(CXX14) cubesql/test_parser.cpp cubesql/tokenizer.cpp cubesql/query.cpp cubesql/parser.cpp -o ./bin/tests/test_parser
 
 bin/send: util/* proto/* send/* .dirs
-	g++ --std=c++14 -I cxxcompat/include proto/proto.cpp send/send.cpp -o ./bin/send
+	$(CXX14) proto/proto.cpp send/send.cpp -o ./bin/send
 
 bin/server: util/* proto/* server/* .dirs
-	g++ --std=c++14 -I cxxcompat/include proto/proto.cpp server/server.cpp -o ./bin/server
+	$(CXX14) proto/proto.cpp server/server.cpp -o ./bin/server
 
 bin/row_generator:	
-	g++ --std=c++14 -I cxxcompat/include proto/proto.cpp row-generator/RowGenerator.cpp -o ./bin/row_generator
+	$(CXX14) proto/proto.cpp row-generator/RowGenerator.cpp -o ./bin/row_generator
