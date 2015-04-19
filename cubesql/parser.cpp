@@ -116,21 +116,74 @@ auto token_stream::read<AnyRange>() -> AnyRange
 
 	switch (left.type)
 	{
-	case AnyAtom::Int:
+	case Type::Int:
 		return Range<Int>{left_inclusive, right_inclusive, Int(left), Int(right)};
 
-	case AnyAtom::Float:
+	case Type::Float:
 		return Range<Float>{left_inclusive, right_inclusive, Float(left), Float(right)};
 
-	case AnyAtom::String:
+	case Type::String:
 		return Range<String>{left_inclusive, right_inclusive, String(left), String(right)};
+	}
+}
+
+template<>
+auto token_stream::is<AnySet>() -> bool
+{
+	return is("{");
+}
+
+template <typename T>
+inline void read_rest(Set<T>& set, token_stream& t)
+{
+	while (t.try_match(","))
+	{
+		auto a = t.read<AnyAtom>();
+		if (typeOf<T>() != a.type)
+			throw std::invalid_argument("CubeSQL::parse");
+		set.values.insert(T(a));
+	}
+}
+
+template<>
+auto token_stream::read<AnySet>() -> AnySet
+{
+	match("{");
+
+	auto first = read<AnyAtom>();
+
+	switch (first.type)
+	{
+		case Type::Int:
+		{
+			auto set = Set<Int>{Int(first)};
+			read_rest(set, *this);
+			match("}");
+			return set;
+		}
+		case Type::Float:
+		{
+			auto set = Set<Float>{Float(first)};
+			read_rest(set, *this);
+			match("}");
+			return set;
+		}
+		case Type::String:
+		{
+			auto set = Set<String>{String(first)};
+			read_rest(set, *this);
+			match("}");
+			return set;
+		}
+		default:
+			throw std::invalid_argument("CubeSQL::parse");
 	}
 }
 
 template<>
 auto token_stream::is<int>() -> bool
 {
-	return tokens[i].val.type == AnyAtom::Int;
+	return tokens[i].val.type == Type::Int;
 }
 
 template<>
@@ -200,8 +253,8 @@ auto readCondition(token_stream& t) -> Condition
 
 	if (t.is<AnyAtom>())
 		c.a = t.read<AnyAtom>();
-	//else if (t.is("{"))
-	//	c.s = t.read<AnySet>();
+	else if (t.is<AnySet>())
+		c.s = t.read<AnySet>();
 	else if (t.is<AnyRange>())
 		c.r = t.read<AnyRange>();
 

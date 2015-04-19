@@ -9,6 +9,26 @@ namespace CubeSQL
 	using Float = double;
 	using String = std::string;
 
+	enum class Type
+	{
+		Empty,
+		Int,
+		Float,
+		String
+	};
+
+	template <typename T>
+	class typeOf;
+
+	template <>
+	class typeOf<Int>: public std::integral_constant<Type, Type::Int> {};
+
+	template <>
+	class typeOf<Float>: public std::integral_constant<Type, Type::Float> {};
+
+	template <>
+	class typeOf<String>: public std::integral_constant<Type, Type::String> {};
+
 	template <typename T>
 	struct Range
 	{
@@ -36,40 +56,49 @@ namespace CubeSQL
 	struct Set
 	{
 		std::set<T> values;
+
+		Set() {}
+		Set(std::initializer_list<T> v): values(v) {}
 	};
+
+	template <typename T>
+	inline bool operator==(const Set<T>& a, const Set<T>& b)
+	{
+		return a.values == b.values;
+	}
+
+	template <typename T>
+	inline bool operator!=(const Set<T>& a, const Set<T>& b)
+	{
+		return !(a == b);
+	}
 
 	template <typename TInt, typename TFloat, typename TString>
 	struct TriType
 	{
-		enum Type
-		{
-			Empty,
-			Int,
-			Float,
-			String
-		} type;
+		Type type;
 
 		TInt i;
 		TFloat f;
 		TString s;
 
-		TriType(): type(Empty) {}
-		TriType(TInt v):           type(Int),    i(v) {}
-		TriType(TFloat v):         type(Float),  f(v) {}
-		TriType(const TString& v): type(String), s(v) {}
+		TriType(): type(Type::Empty) {}
+		TriType(TInt v):           type(Type::Int),    i(v) {}
+		TriType(TFloat v):         type(Type::Float),  f(v) {}
+		TriType(const TString& v): type(Type::String), s(v) {}
 
-		explicit operator bool() const { return type != Empty; }
+		explicit operator bool() const { return type != Type::Empty; }
 		explicit operator TInt() const { return i; }
 		explicit operator TFloat() const { return f; }
 		explicit operator TString() const { return s; }
 
-		TriType& operator=(TInt v)    {type = Int;    i = v;}
-		TriType& operator=(TFloat v)  {type = Float;  f = v;}
-		TriType& operator=(TString v) {type = String; s = v;}
+		TriType& operator=(TInt v)    {type = Type::Int;    i = v;}
+		TriType& operator=(TFloat v)  {type = Type::Float;  f = v;}
+		TriType& operator=(TString v) {type = Type::String; s = v;}
 
-		bool operator==(TInt v)           const {return type == Int && i == v;}
-		bool operator==(TFloat v)         const {return type == Float && f == v;}
-		bool operator==(const TString& v) const {return type == String && s == v;}
+		bool operator==(TInt v)           const {return type == Type::Int && i == v;}
+		bool operator==(TFloat v)         const {return type == Type::Float && f == v;}
+		bool operator==(const TString& v) const {return type == Type::String && s == v;}
 	};
 
 	using AnyAtom  = TriType<Int, Float, String>;
