@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdexcept>
 
-#include "Generator.h"
+#include "Generator.cpp"
 
 using namespace std;
 
@@ -22,7 +22,7 @@ int main(int argc, const char* argv[]){
 	double seconds;
 	int port, no_cols, no_rows;
 	const char* ip, * filepath;
-	RowGenerator generator = RowGenerator();
+	//RowGenerator generator = RowGenerator();
 
 	if (argc < 4){
 		usage();
@@ -31,21 +31,21 @@ int main(int argc, const char* argv[]){
 	ip = argv[1];
 	if (from_file = (argc == 4)){
 		filepath = argv[3];
-		if (!generator.LoadCubeFile(filepath)){
+		if (!Generator::LoadCubeFile(filepath)){
 			cout << "Couldn't load cube file " << filepath << endl;
 			return 1;
 		}
-		no_cols = generator.NoColumns();
+		no_cols = Generator::NoColumns();
 	}else{
 		no_cols = std::stoi(argv[4]);
 		if (no_cols < 1){
 			cerr << "Number of columns must be at least 1" << endl;
 			return 3;
 		}
-		generator.SetNoColumns(no_cols);
+		Generator::SetNoColumns(no_cols);
 	}
 
-	if (!generator.Connect(port,ip)){
+	if (!Generator::Connect(port,ip)){
 		cerr << "Could not connect to " << ip << ":" << port << endl;
 		return 2;
 	}
@@ -62,7 +62,7 @@ int main(int argc, const char* argv[]){
         //S|s - send the data
         if (line[0] == 's' || line[0] == 'S'){
             time(&startTime);
-            int bytes = generator.Send();
+            int bytes = Generator::Send();
             time(&endTime);
             seconds = difftime(endTime, startTime);
             cout << endl << "Sent "<< bytes << " bytes - " << bytes/ seconds / 1024 / 1024 << " Mbytes/s" << endl;
@@ -79,13 +79,14 @@ int main(int argc, const char* argv[]){
 		time(&startTime);
 
 		if(!from_file){
-			generator.GenerateRandom(no_rows);
+			Generator::GenerateRandom(no_rows);
 		}else{
-			generator.Generate(no_rows);
+			//generator.Generate(no_rows);
+			Generator::StartGenerating(no_rows);
 		}
 		time(&endTime);
 		seconds = difftime(endTime, startTime);
-		cout << endl << "Generated " << (int)(no_cols * no_rows * (sizeof(int) + 1)/ seconds / 1024 / 1024) << " Mbytes/s" << endl;
+		//cout << endl << "Generated " << (int)(no_cols * no_rows * (sizeof(int) + 1)/ seconds / 1024 / 1024) << " Mbytes/s" << endl;
 	}
 
 
