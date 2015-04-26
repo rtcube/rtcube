@@ -50,4 +50,4 @@ bin/server: util/* proto/* server/* .dirs
 	$(CXX14) proto/proto.cpp server/server.cpp -o ./bin/server
 
 bin/row_generator:	
-	$(CXX14) proto/proto.cpp row-generator/RowGenerator.cpp -o ./bin/row_generator
+	$(CXX14) -pthread proto/proto.cpp row-generator/RowGenerator.cpp -o ./bin/row-generator
