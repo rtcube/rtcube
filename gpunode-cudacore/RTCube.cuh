@@ -19,7 +19,7 @@ typedef struct RTCube
 {
 	int Id;
 	int MemorySize;
-	thrust::device_ptr<float> d_CubeMemory;
+	thrust::device_ptr<int> d_CubeMemory;
 
 	int DimCount;
 	thrust::device_ptr<int> d_DimRanges;
@@ -33,31 +33,50 @@ typedef struct RTCube
 
 }RTCube;
 
+#define RTCUBE_OP_NONE 0
 #define RTCUBE_OP_SUM 1
 #define RTCUBE_OP_MAX 2
 #define RTCUBE_OP_MIN 3
 #define RTCUBE_OP_AVG 4
+#define RTCUBE_OP_CNT 5
+
+#define RTCUBE_WHERE_NONE 0
+#define RTCUBE_WHERE_SET 1
+#define RTCUBE_WHERE_RANGE 2
+#define RTCUBE_WHERE_MAXRANGE 3
 
 typedef struct Querry
 {
+	int DimCount; 
+	int MeasCount;
+
 	thrust::device_ptr<int> d_SelectDims;
-
-	int DimCount;
-
 	thrust::device_ptr<int> d_SelectMeasOps;
 
-	thrust::device_ptr<int> d_WhereDimValsCounts;
+	thrust::device_ptr<int> d_WhereDimMode;
+
+	thrust::device_ptr<int> d_WhereDimValuesCounts;
 
 	thrust::device_ptr<int> d_WhereDimVals;
 
 	thrust::device_ptr<int> d_WhereDimValsStart;
 
-	int MeasCount;
+	thrust::device_ptr<int> d_WhereStartRange;
+	thrust::device_ptr<int> d_WhereEndRange;
 
 }Querry;
 
 typedef struct QueryResult
 {
+	Querry Q;
+
+	int ResultsCount;
+
+	int MeasPerResult;
+
+	thrust::device_ptr<int> d_SelectDimSizes;
+
+	thrust::device_ptr<int> d_ResultMeas;
 
 }QueryResult;
 
@@ -69,9 +88,13 @@ void PrintCubeInfo(RTCube cube);
 
 void PrintCubeMemory(RTCube cube);
 
-void AddPack(RTCube cube, int vecCount, thrust::device_ptr<int> d_dims, thrust::device_ptr<float> d_meas);
+void AddPack(RTCube cube, int vecCount, thrust::device_ptr<int> d_dims, thrust::device_ptr<int> d_meas);
 
 Querry InitQuerry(int dimCount, int measCount);
+
+void PrintQuerry(Querry querry);
+
+void PrintQuerryResult(QueryResult result);
 
 QueryResult ProcessQuerry(RTCube cube, Querry querry);
 
