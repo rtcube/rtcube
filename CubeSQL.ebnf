@@ -1,0 +1,38 @@
+Query ::= Select | Create
+
+Number ::= integer | float
+Constant ::= Number | string
+Operation ::= label
+FieldName ::= label
+CubeName ::= label
+
+Range ::= ( '<' | '(' ) Constant ',' Constant ( ')' | '>' )
+NumericRange ::= ( '<' | '(' ) Number ',' Number ( ')' | '>' )
+Set ::= '{' Constant ( ',' Constant )* '}'
+
+ArraySpecifier ::= '[' integer ']'
+
+
+
+Select ::= SelectClause FromClause WhereClause? OrderClause? LimitClause?
+SelectClause ::= 'SELECT' Expr ( ',' Expr)*
+FromClause  ::= 'FROM' CubeName
+WhereClause ::= 'WHERE' Condition ( 'AND' Condition )*
+OrderClause ::= 'ORDER' 'BY' OrderingTerm ( ',' OrderingTerm )*
+LimitClause ::= 'LIMIT' integer ( ( 'OFFSET' | ',' ) integer )? 
+
+Condition ::= FieldName ArraySpecifier? ( ( '=' | '<' | '>' | '<=' | '>=' | '<>' ) Number | 'IN' ( Range | Set ) )
+OrderingTerm ::= Expr ( 'ASC' | 'DESC' )?
+
+Expr ::= FieldName | Constant | Operation '(' Expr ( ',' Expr )* ')'
+
+
+
+Create ::= 'CREATE' 'CUBE' CubeName ( '{' CreateBody '}' | '(' CreateBody ')' )
+CreateBody ::= DimOrMeaDefinition ( ',' DimOrMeaDefinition )+ ','?
+DimOrMeaDefinition ::= DimDefinition | MeaDefinition
+DimDefinition ::= ( 'DIM' | 'DIMENSION' ) FieldName DimType
+MeaDefinition ::= ( 'MEA' | 'MEASURE' ) FieldName MeaType
+
+DimType ::= 'TIME' | 'TEXT' | 'CHAR' ArraySpecifier? | 'INT' | 'FLOAT' | Range | Set
+MeaType ::= 'INT' | 'FLOAT' | NumericRange | Set
