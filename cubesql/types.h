@@ -2,6 +2,7 @@
 
 #include <string>
 #include <set>
+#include <algorithm>
 
 namespace CubeSQL
 {
@@ -55,10 +56,12 @@ namespace CubeSQL
 	template <typename T>
 	struct Set
 	{
-		std::set<T> values;
+		std::vector<T> values;
 
 		Set() {}
 		Set(std::initializer_list<T> v): values(v) {}
+
+		auto index_of(T v) -> int { auto p = std::find(values.begin(), values.end(), v); return p == values.end() ? -1 : p - values.begin(); }
 	};
 
 	template <typename T>

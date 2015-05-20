@@ -1,6 +1,6 @@
-all: test_proto test_tokenizer test_parser bin/send bin/server bin/row_generator
+all: test_proto test_tokenizer test_parser test_to_ir bin/send bin/server bin/row_generator
 
-test: test_proto test_tokenizer test_parser test_server
+test: test_proto test_tokenizer test_parser test_to_ir test_server
 
 test_proto: bin/tests/test_proto
 	./bin/tests/test_proto
@@ -10,6 +10,9 @@ test_tokenizer: bin/tests/test_tokenizer
 
 test_parser: bin/tests/test_parser
 	./bin/tests/test_parser
+
+test_to_ir: bin/tests/test_to_ir
+	./bin/tests/test_to_ir
 
 test_server: bin/server bin/send
 	./bin/server "[::]:2121" &
@@ -42,6 +45,9 @@ bin/tests/test_tokenizer: util/* cubesql/* .dirs
 
 bin/tests/test_parser: util/* cubesql/* .dirs
 	$(CXX14) cubesql/test_parser.cpp cubesql/tokenizer.cpp cubesql/query.cpp cubesql/parser.cpp -o ./bin/tests/test_parser
+
+bin/tests/test_to_ir: util/* cubesql/* proto/* ir/* to_ir/* .dirs
+	$(CXX14) to_ir/test.cpp cubesql/tokenizer.cpp cubesql/query.cpp cubesql/parser.cpp to_ir/cubedef.cpp to_ir/rows.cpp -o ./bin/tests/test_to_ir
 
 bin/send: util/* proto/* send/* .dirs
 	$(CXX14) proto/proto.cpp send/send.cpp -o ./bin/send

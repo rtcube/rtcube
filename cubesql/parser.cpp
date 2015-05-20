@@ -141,7 +141,7 @@ inline void read_rest(Set<T>& set, token_stream& t)
 		auto a = t.read<AnyAtom>();
 		if (typeOf<T>() != a.type)
 			throw std::invalid_argument("CubeSQL::parse");
-		set.values.insert(T(a));
+		set.values.push_back(T(a));
 	}
 }
 
