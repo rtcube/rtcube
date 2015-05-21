@@ -15,65 +15,7 @@
 #include <thrust/binary_search.h>
 #include <thrust/execution_policy.h>
 
-typedef struct RTCube
-{
-	int Id;
-	int MemorySize;
-	thrust::device_ptr<float> d_CubeMemory;
-
-	int DimCount;
-	thrust::device_ptr<int> d_DimRanges;
-	thrust::device_ptr<int> d_DimSizes;
-
-	int MeasCount;
-	int SingleMeasSize;
-
-	int Blocks;
-	int Threads;
-
-}RTCube;
-
-#define RTCUBE_OP_SUM 1
-#define RTCUBE_OP_MAX 2
-#define RTCUBE_OP_MIN 3
-#define RTCUBE_OP_AVG 4
-
-typedef struct Querry
-{
-	thrust::device_ptr<int> d_SelectDims;
-
-	int DimCount;
-
-	thrust::device_ptr<int> d_SelectMeasOps;
-
-	thrust::device_ptr<int> d_WhereDimValsCounts;
-
-	thrust::device_ptr<int> d_WhereDimVals;
-
-	thrust::device_ptr<int> d_WhereDimValsStart;
-
-	int MeasCount;
-
-}Querry;
-
-typedef struct QueryResult
-{
-
-}QueryResult;
-
-RTCube InitCube(int cubeId, int cubeCount, int dimCount, int *dimRanges, int measCount, int blocks, int threads);
-
-void FreeCube(RTCube cube);
-
-void PrintCubeInfo(RTCube cube);
-
-void PrintCubeMemory(RTCube cube);
-
-void AddPack(RTCube cube, int vecCount, thrust::device_ptr<int> d_dims, thrust::device_ptr<float> d_meas);
-
-Querry InitQuerry(int dimCount, int measCount);
-
-QueryResult ProcessQuerry(RTCube cube, Querry querry);
+#include "RTQuery.cuh"
 
 #define gpuErrChk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 
@@ -85,4 +27,50 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
 		if (abort) exit(code);
 	}
 }
+
+typedef struct RTCube
+{
+	//Ile wektorów przy aktualnej definicji kostka może pomieścić
+	int Capacity;
+
+	//Pamięć, gdzie trzymane są kody wektorów
+	thrust::device_ptr<unsigned long int> Codes;
+
+	//Pamięć, gdzie trzymane są wartości miar wektorów
+	thrust::device_ptr<int> Measures;
+
+	//Liczba ciągów aktulanie znajdujących się w kostce
+	int VectorsCount;
+
+	//Liczba wymiarów kostki
+	int DimensionsCount;
+
+	//Zakresy wymiarów, czyli zakresy wartości (dla i-tego wymiaru < 0 , DimensionSizes[i] )
+	thrust::device_ptr<int> DimensionsRanges;
+
+	//Rozmiary wymiarów w wielowymiaroewj tablicy - informacja potrzebna do indeksowania
+	thrust::device_ptr<int> DimensionsSizes;
+
+	//Liczba miar w wektorach
+	int MeasuresCount;
+
+	//Rozmiar w pamięci - w bajtach
+	int MemoryPerVector;
+
+	int Blocks;
+	int Threads;
+
+}RTCube;
+
+RTCube InitCube(float cardMemoryPartToFill, int dimensionsCount, int *dimensionsSizes, int measuresCount, int blocks, int threads);
+
+void AddPack(RTCube &cube, int vecCount, thrust::device_ptr<int> d_dims, thrust::device_ptr<int> d_meas);
+
+void FreeCube(RTCube cube);
+
+void PrintCubeInfo(RTCube cube);
+
+void PrintCubeMemory(RTCube cube);
+
+QueryResult ProcessQuerry(RTCube cube, Querry querry);
 
