@@ -1,4 +1,4 @@
-all: test_proto test_tokenizer test_parser test_to_ir bin/send bin/server bin/row_generator gpunode #test_cudacore
+all: test_proto test_tokenizer test_parser test_to_ir bin/send bin/server bin/row_generator lib/librtquery.so gpunode #test_cudacore
 
 test: test_proto test_tokenizer test_parser test_to_ir test_server #test_cudacore
 
@@ -63,6 +63,11 @@ bin/server: util/* proto/* server/* .dirs2
 
 bin/row_generator: proto/* row-generator/* .dirs2
 	$(CXX14) proto/proto.cpp row-generator/RowGenerator.cpp -o ./bin/row_generator
+
+lib/librtquery.so: cubesql/* librtquery/* .dirs2
+	$(CXX14) -shared -fPIC librtquery/query.cpp cubesql/query.cpp cubesql/tokenizer.cpp cubesql/parser.cpp -o ./lib/librtquery.so.0
+	rm -f ./lib/librtquery.so
+	ln -s librtquery.so.0 ./lib/librtquery.so
 
 obj/RTCube.o: gpunode/* ir/* .dirs2
 	$(NVCC) -c gpunode/RTCube.cu -o obj/RTCube.o
