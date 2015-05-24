@@ -1,19 +1,21 @@
 #pragma once
 
-#include <string>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-namespace RTCube
+struct RTCube_error
 {
-	void query(const std::string& cubesql);
+	char* message;
+};
+void RTCube_free_error(struct RTCube_error*);
+
+typedef const char* const_cstring;
+void RTCube_query(const int* sockets, int sockets_len, const_cstring cubesql, struct RTCube_error**);
+void RTCube_connect_query(const const_cstring* hostports, int hostports_len, const_cstring cubesql, struct RTCube_error**);
+
+#ifdef __cplusplus
 }
 
-extern "C"
-{
-	struct RTCube_error
-	{
-		char* message;
-	};
-	void RTCube_free_error(struct RTCube_error*);
-
-	void RTCube_query(const char* cubesql, struct RTCube_error**);
-}
+#include "query.hpp"
+#endif

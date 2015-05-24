@@ -2,21 +2,25 @@ from cffi import FFI
 
 ffi = FFI()
 
-ffi.cdef('''
-struct RTCube_error
-{
-	char* message;
-};
-void RTCube_free_error(struct RTCube_error*);
+def deifdef(hpp):
+	it = iter(hpp)
+	ifdef_level = 0
+	while True:
+		line = next(it)
+		if line.startswith("#ifdef"):
+			ifdef_level += 1
+		if ifdef_level == 0:
+			yield line
+		if line.startswith("#endif"):
+			ifdef_level -= 1
 
-void RTCube_query(const char* cubesql, struct RTCube_error**);
-''')
+ffi.cdef("\n".join(deifdef(open("librtquery/query.h"))))
 
 lib = ffi.dlopen('./lib/librtquery.so')
 
 def query(cubesql):
 	errorptr = ffi.new('struct RTCube_error**') # RTCube_error* allocated.
-	lib.RTCube_query(cubesql.encode("utf-8"), errorptr)
+	lib.RTCube_query([], 0, cubesql.encode("utf-8"), errorptr)
 	error = errorptr[0]
 	if error:
 		msg = ffi.string(error.message).decode("utf-8")
