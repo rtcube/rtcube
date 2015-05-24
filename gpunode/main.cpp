@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "RTCubeApi.h"
+#include "../cudacore/RTCubeApi.h"
 #include "RTServer.h"
 
 int main(int argc, char** argv)

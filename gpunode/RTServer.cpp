@@ -6,7 +6,7 @@
 #include "../proto/proto.h"
 #include "../util/HostPort.h"
 
-#include "RTCubeApi.h"
+#include "../cudacore/RTCubeApi.h"
 #include "RTServer.h"
 
 using namespace std;

@@ -1,6 +1,6 @@
 all: compile test
 
-compile: bin/send bin/server bin/row_generator lib/librtquery.so bin/gpunode
+compile: bin/send bin/server bin/row_generator lib/librtquery.so lib/librtcudacore.so bin/gpunode
 
 test: test_proto test_tokenizer test_parser test_to_ir test_server test_cudacore
 
@@ -25,7 +25,7 @@ test_server: bin/server bin/send
 	./bin/send "[::1]:2121" DIE
 
 .dirs3:
-	mkdir -p bin bin/tests lib obj
+	mkdir -p bin bin/tests lib obj obj/cudacore
 	touch .dirs3
 
 gcc:
@@ -71,23 +71,28 @@ lib/librtquery.so: cubesql/* librtquery/* .dirs3
 	rm -f ./lib/librtquery.so
 	ln -s librtquery.so.0 ./lib/librtquery.so
 
-obj/RTCube.o: gpunode/*.h gpunode/*.cuh gpunode/RTCube.cu ir/* .dirs3
-	$(NVCC) -c gpunode/RTCube.cu -o obj/RTCube.o
+obj/cudacore/RTCube.o: cudacore/*.cuh cudacore/RTCube.cu .dirs3
+	$(NVCC) -c --compiler-options -fPIC cudacore/RTCube.cu -o obj/cudacore/RTCube.o
 
-obj/RTQuery.o: gpunode/*.h gpunode/*.cuh gpunode/RTQuery.cu ir/* .dirs3
-	$(NVCC) -c gpunode/RTQuery.cu -o obj/RTQuery.o
+obj/cudacore/RTQuery.o: cudacore/*.cuh cudacore/RTQuery.cu .dirs3
+	$(NVCC) -c --compiler-options -fPIC cudacore/RTQuery.cu -o obj/cudacore/RTQuery.o
 
-obj/RTUtil.o: gpunode/*.h gpunode/*.cuh gpunode/RTUtil.cu ir/* .dirs3
-	$(NVCC) -c gpunode/RTUtil.cu -o obj/RTUtil.o
+obj/cudacore/RTUtil.o: cudacore/*.cuh cudacore/RTUtil.cu .dirs3
+	$(NVCC) -c --compiler-options -fPIC cudacore/RTUtil.cu -o obj/cudacore/RTUtil.o
 
-obj/RTCubeApi.o: gpunode/*.h  gpunode/*.cuh gpunode/RTCubeApi.cu ir/* .dirs3
-	$(NVCC) -c gpunode/RTCubeApi.cu -o obj/RTCubeApi.o
+obj/cudacore/RTCubeApi.o: ir/*.h cudacore/*.h cudacore/*.cuh cudacore/RTCubeApi.cu .dirs3
+	$(NVCC) -c --compiler-options -fPIC cudacore/RTCubeApi.cu -o obj/cudacore/RTCubeApi.o
 
-obj/sample.o: gpunode/*.h  gpunode/*.cuh gpunode/sample.cu ir/* .dirs3
-	$(NVCC) -c gpunode/sample.cu -o obj/sample.o
+obj/cudacore/sample.o: cudacore/*.cuh cudacore/sample.cu .dirs3
+	$(NVCC) -c cudacore/sample.cu -o obj/cudacore/sample.o
 
-bin/tests/test_cudacore: obj/RTCube.o obj/RTQuery.o obj/RTUtil.o obj/sample.o
-	$(NVCC) obj/RTCube.o obj/RTQuery.o obj/RTUtil.o obj/sample.o -o bin/tests/test_cudacore
+bin/tests/test_cudacore: obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTUtil.o obj/cudacore/sample.o
+	$(NVCC) obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTUtil.o obj/cudacore/sample.o -o bin/tests/test_cudacore
 
-bin/gpunode: obj/RT*.o util/* proto/* server/* .dirs3
-	$(CXX14) proto/proto.cpp gpunode/main.cpp gpunode/RTServer.cpp obj/RTCube.o obj/RTQuery.o obj/RTUtil.o obj/RTCubeApi.o /usr/local/cuda/lib64/libcudart_static.a -pthread -ldl -lrt -o bin/gpunode
+lib/librtcudacore.so: obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTCubeApi.o obj/cudacore/RTUtil.o cubesql/* librtquery/* .dirs3
+	$(NVCC) -shared --compiler-options -fPIC obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTCubeApi.o obj/cudacore/RTUtil.o -o ./lib/librtcudacore.so.0
+	rm -f ./lib/librtcudacore.so
+	ln -s librtcudacore.so.0 ./lib/librtcudacore.so
+
+bin/gpunode: lib/librtcudacore.so gpunode/* util/* proto/* server/* .dirs3
+	$(CXX14) proto/proto.cpp gpunode/main.cpp gpunode/RTServer.cpp -Llib -lrtcudacore -o bin/gpunode
