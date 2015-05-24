@@ -13,6 +13,7 @@
 #include <fstream>
 #include <stdio.h>
 #include "../proto/proto.h"
+#include "../util/HostPort.h"
 
 #define DATA_FILENAME "cube.data"
 using namespace std;
@@ -165,12 +166,25 @@ public:
             std::cerr << "Cannot generate from file" << endl;
 			return;
 		}
-		srand(time(NULL));
-
+		timespec ts_start;
+		clock_gettime(CLOCK_REALTIME, &ts_start); // Works on Linux
+		long sent = 0;
         for (int i = 0; i < no_rows; ++i){
             auto row = generateIntRow(i, with_time);
-            saveRow(row);
+    		int bytes = sendto(_fd, row.data(), row.size(), 0, (::sockaddr*)&_sin6, sizeof(_sin6));
+    		if (bytes == -1) {
+    		    std::cout << "sendto error: " << strerror(errno) << endl;
+    		}
+    		else {
+    			sent += bytes;
+    		}
+            //saveRow(row);
         }
+		timespec ts_end;
+		clock_gettime(CLOCK_REALTIME, &ts_end); // Works on Linux
+		long ms = (ts_end.tv_sec - ts_start.tv_sec) * 1000.0f + ts_end.tv_nsec * 0.000001f - ts_start.tv_nsec * 0.000001f;
+		double MBps = (sent * 0.000001) / (ms * 0.001);
+		std::cerr << "Sent " << sent << " bytes in " << ms << " ms" << " (" << MBps << " MB/s)" << std::endl;
 	}
 
 	bool LoadCubeFile(std::string filename){
@@ -236,11 +250,11 @@ public:
 		return true;
 	}
 
-	bool Connect(int port, std::string address){
-		memset(&_sin6, 0, sizeof(_sin6));
+	bool Connect(HostPort dest){
+		::memset(&_sin6, 0, sizeof(_sin6));
 		_sin6.sin6_family = AF_INET6;
-		inet_pton(AF_INET6, address.data(), &(_sin6.sin6_addr));
-		_sin6.sin6_port=htons(port);
+		::memcpy(&_sin6.sin6_addr, dest.ip, 16);
+		_sin6.sin6_port = dest.port;
 
 		if( (_fd=socket(PF_INET6,SOCK_DGRAM,0)) < 0){ perror("Opening socket."); return false;}
 
@@ -251,8 +265,8 @@ public:
 		return _connected = (res == v.size());
 	}
 	bool IsConnected() { return _connected; }
-	int Send(char * ip, int port){
-		if (!Connect(port, ip))
+	int Send(HostPort dest){
+		if (!Connect(dest))
             return -1;
 		return Send();
 	}

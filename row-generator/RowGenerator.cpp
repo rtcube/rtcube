@@ -7,12 +7,13 @@
 #include <stdexcept>
 
 #include "Generator.h"
+#include "../util/HostPort.h"
 
 using namespace std;
 
 void usage(){
 	cerr << "USAGE: " << endl;
-	cerr << "RowGenerator ip port [filename | -r number_of_colums]" << endl;
+	cerr << "RowGenerator ip:port [filename | -r number_of_colums]" << endl;
 	exit(0);
 }
 
@@ -22,22 +23,26 @@ int main(int argc, const char* argv[]){
 	double seconds;
 	int port, no_cols, no_rows;
 	const char* ip, * filepath;
+	srand(time(NULL));
 	RowGenerator generator = RowGenerator();
 
-	if (argc < 4){
+	if (argc < 3){
 		usage();
 	}
-	port = std::stoi(argv[2]);
-	ip = argv[1];
-	if (from_file = (argc == 4)){
-		filepath = argv[3];
+//	port = std::stoi(argv[2]);
+//	ip = argv[1];
+
+	auto dest = HostPort{argv[1]};
+
+	if (from_file = (argc == 3)){
+		filepath = argv[2];
 		if (!generator.LoadCubeFile(filepath)){
 			cout << "Couldn't load cube file " << filepath << endl;
 			return 1;
 		}
 		no_cols = generator.NoColumns();
 	}else{
-		no_cols = std::stoi(argv[4]);
+		no_cols = std::stoi(argv[3]);
 		if (no_cols < 1){
 			cerr << "Number of columns must be at least 1" << endl;
 			return 3;
@@ -45,7 +50,7 @@ int main(int argc, const char* argv[]){
 		generator.SetNoColumns(no_cols);
 	}
 
-	if (!generator.Connect(port,ip)){
+	if (!generator.Connect(dest)){
 		cerr << "Could not connect to " << ip << ":" << port << endl;
 		return 2;
 	}
