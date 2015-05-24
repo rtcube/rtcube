@@ -168,7 +168,6 @@ public:
 	}
 	// Generates rows based on the loaded file
 	void Generate(int no_rows, bool with_time = true){
-		std::cout << "Gen" << std::endl;
 		if (!canGenerateFromFile()){
             std::cerr << "Cannot generate from file" << endl;
 			return;
