@@ -1,6 +1,6 @@
-#ifndef RTSERVER_HPP_
-#define RTSERVER_HPP_
+#ifndef RTSERVER_H_
+#define RTSERVER_H_
 
 int RunServers(char *hostaddr_tcp, char *hostaddr_udp);
 
-#endif /* RTSERVER_HPP_ */
+#endif /* RTSERVER_H_ */

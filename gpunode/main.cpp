@@ -1,9 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 #include <iostream>
 
-#include "RTSample.cuh"
+#include "RTCubeApi.h"
 #include "RTServer.h"
 
 int main(int argc, char** argv)
@@ -18,8 +15,9 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
-	int err = 0;
-	err = RunServers(argv[1], argv[2]);
+	initCube();
+
+	int err = RunServers(argv[1], argv[2]);
 
 	//i wszystko :D
 	return err;

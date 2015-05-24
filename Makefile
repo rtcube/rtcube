@@ -70,14 +70,25 @@ obj/RTCube.o: gpunode/* ir/* .dirs2
 obj/RTQuery.o: gpunode/* ir/* .dirs2
 	$(NVCC) -c gpunode/RTQuery.cu -o obj/RTQuery.o
 
-obj/RTSample.o: gpunode/* ir/* .dirs2
-	$(NVCC) -c gpunode/RTSample.cu -o obj/RTSample.o
+obj/RTUtil.o: gpunode/* ir/* .dirs2
+	$(NVCC) -c gpunode/RTUtil.cu -o obj/RTUtil.o
+
+obj/RTCubeApi.o: gpunode/* ir/* .dirs2
+	$(NVCC) -c gpunode/RTCubeApi.cu -o obj/RTCubeApi.o
 
 #bin/tests/test_cudacore: obj/RTCube.o obj/RTQuery.o obj/RTSample.o
 #	$(NVCC) obj/RTCube.o obj/RTQuery.o obj/RTSample.o -o bin/tests/test_cudacore
 
-gpunode: obj/RTCube.o obj/RTQuery.o obj/RTSample.o util/* proto/* server/* .dirs2
-	$(CXX14) proto/proto.cpp gpunode/main.cpp gpunode/RTServer.cpp obj/RTCube.o obj/RTQuery.o obj/RTSample.o /usr/local/cuda/lib64/libcudart_static.a -pthread -ldl -lrt -o bin/gpunode
+gpunode: obj/RTCube.o obj/RTQuery.o obj/RTUtil.o obj/RTCubeApi.o util/* proto/* server/* .dirs2
+	$(CXX14) proto/proto.cpp gpunode/main.cpp gpunode/RTServer.cpp obj/RTCube.o obj/RTQuery.o obj/RTUtil.o obj/RTCubeApi.o /usr/local/cuda/lib64/libcudart_static.a -pthread -ldl -lrt -o bin/gpunode
 
 gpunode-server: util/* proto/* server/* .dirs2
-	$(CXX14) proto/proto.cpp gpunode/main.cpp gpunode/RTServer.cpp obj/RTCube.o obj/RTQuery.o obj/RTSample.o /usr/local/cuda/lib64/libcudart_static.a -pthread -ldl -lrt -o bin/gpunode
+	$(CXX14) proto/proto.cpp gpunode/main.cpp gpunode/RTServer.cpp obj/RTCube.o obj/RTQuery.o obj/RTUtil.o obj/RTCubeApi.o /usr/local/cuda/lib64/libcudart_static.a -pthread -ldl -lrt -o bin/gpunode
+
+gpunode-api: obj/RTCubeApi.o gpunode-server
+
+gpunode-cudacore: obj/RTCube.o obj/RTQuery.o obj/RTUtil.o
+
+#gpunode-cudacore: obj/RTCube.o obj/RTQuery.o obj/RTUtil.o obj/RTCubeApi.o util/* proto/* server/* .dirs2
+#	$(NVCC) 
+	

@@ -2,7 +2,8 @@
 #define RTCUBEAPI_H_
 
 void initCube();
-void insert();
-void query();
+void cubeInsert(int *row, int size);
+void cubeQuery();
+void cubeStatus();
 
 #endif /* RTCUBEAPI_H_ */

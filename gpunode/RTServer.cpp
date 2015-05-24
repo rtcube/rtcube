@@ -1,25 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <sys/time.h>
-#include <netinet/in.h>
 #include <signal.h>
-#include <netdb.h>
 #include <fcntl.h>
-
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 
 #include "../proto/proto.h"
 #include "../util/HostPort.h"
 
+#include "RTCubeApi.h"
 #include "RTServer.h"
 
 using namespace std;
@@ -28,6 +15,7 @@ using namespace std;
 		     fprintf(stderr, "%s:%d\n", __FILE__, __LINE__),\
 		     exit(EXIT_FAILURE))
 #define BACKLOG 3
+#define DEBUG_INFO false
 
 volatile sig_atomic_t do_work = 1;
 
@@ -138,18 +126,32 @@ void communicateDgram(int fd)
 	{
 		std::cout << "Generator connected" << endl;
 	}
+	else if (V[0] == "status")
+	{
+		cubeStatus();
+	}
 	else
 	{
-		std::cout << "Insert: ";
-		for (auto v : V)
+		if (DEBUG_INFO)
 		{
-			try
+			std::cout << "Insert: ";
+			for (auto v : V)
 			{
-				std::cout << int(v) << " "; // cout is required, so compiler won't optimize int() away.
+				try
+				{
+					std::cout << int(v) << " "; // cout is required, so compiler won't optimize int() away.
+				}
+				catch (std::domain_error&) {}
 			}
-			catch (std::domain_error&) {}
+			std::cout << std::endl;
 		}
-		std::cout << std::endl;
+
+		int size = V.size();
+		int *values = (int*)malloc(size * sizeof(int));
+		for (auto i = 0; i < size; ++i)
+			values[i] = V[i];
+		cubeInsert(values, size);
+		free(values);
 	}
 }
 
