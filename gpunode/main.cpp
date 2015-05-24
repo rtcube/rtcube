@@ -7,8 +7,6 @@ int main(int argc, char** argv)
 {
 	srand(time(NULL));
 
-	//RunSample();
-
 	if (argc < 3)
 	{
 		std::cerr << "Usage: " << argv[0] << " tcp_host:port udp_host:port" << std::endl;

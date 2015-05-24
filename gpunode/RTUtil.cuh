@@ -1,6 +1,8 @@
 #ifndef RTUTIL_H_
 #define RTUTIL_H_
 
+#include <thrust/device_vector.h>
+
 void PrintVector(int dimCount, int *dimVals, int measCount, int *measVals);
 void PrintPack(int vecCount, int dimCount, int measCount, int **dims, int **meas);
 void GeneretVector(int dimCount, int *dimRanges, int measCount, int measMax, int **dimVals, int **measVals);
