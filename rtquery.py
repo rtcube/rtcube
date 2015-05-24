@@ -29,7 +29,16 @@ def query(sockets, cubesql):
 			sockets[0].fileno()
 		except:
 			sockets = list(connect(sockets))
+			try:
+				query_s(sockets, cubesql)
+				return
+			finally:
+				for s in sockets:
+					s.close()
 
+	query_s(sockets, cubesql)
+
+def query_s(sockets, cubesql):
 	errorptr = ffi.new('struct RTCube_error**') # RTCube_error* allocated.
 	lib.RTCube_query([s.fileno() for s in sockets], len(sockets), cubesql.encode("utf-8"), errorptr)
 	error = errorptr[0]
@@ -37,3 +46,4 @@ def query(sockets, cubesql):
 		msg = ffi.string(error.message).decode("utf-8")
 		lib.RTCube_free_error(error)
 		raise ValueError(msg)
+
