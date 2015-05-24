@@ -1,4 +1,7 @@
 #include "RTQuery.cuh"
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 
 Querry InitQuerry(int dimCount, int measCount, int operationsCount)
 {
@@ -185,6 +188,44 @@ void PrintQuerryResult(QueryResult result)
 
 		printf("\n");
 	}
+}
+
+std::string GetQuerryResultString(QueryResult result)
+{
+	std::stringstream ss;
+	ss << "Querry result\nResult lines count:" << std::setw(4) << result.ResultsCount << "\nMeas per result:" << std::setw(4) << result.MeasPerResult << "\n\n";
+
+	for (int i = 0; i < result.ResultsCount; ++i)
+	{
+		int index = i;
+
+		ss << std::setw(3) << i << ": ";
+
+		for (int j = 0; j < result.Q.DimCount; ++j)
+		{
+			if ((int)result.Q.d_SelectDims[j] == 1)
+			{
+				int dimValIndex =  index / result.d_SelectDimSizes[j];
+				int dimVal;
+				if ((int)result.Q.d_WhereDimMode[j] == RTCUBE_WHERE_SET)
+					dimVal = (int)result.Q.d_WhereDimVals[(int)result.Q.d_WhereDimValsStart[j] + dimValIndex];
+				else
+					dimVal = (int)result.Q.d_WhereStartRange[j] + dimValIndex;
+
+				ss << std::setw(3) << dimVal;
+
+				index %= result.d_SelectDimSizes[j];
+			}
+		}
+
+		ss << "  :";
+
+		for (int j = 0; j < result.MeasPerResult; ++j)
+			ss << std::setw(10) << (int)result.d_ResultMeas[j * result.ResultsCount + i];
+
+		ss << "\n";
+	}
+	return ss.str();
 }
 
 void FreeResult(QueryResult result)

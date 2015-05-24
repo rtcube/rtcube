@@ -168,7 +168,6 @@ public:
 	}
 	// Generates rows based on the loaded file
 	void Generate(int no_rows, bool with_time = true){
-		std::cout << "Gen" << std::endl;
 		if (!canGenerateFromFile()){
             std::cerr << "Cannot generate from file" << endl;
 			return;
@@ -277,6 +276,15 @@ public:
 
 	bool StatusRequest() {
 		auto v = proto::serialize("status");
+		int res;
+		for (int i = 0; i < nodesCount; ++i) {
+	        res = sendto(_fd, v.data(), v.size(), 0, (sockaddr *)&addrs[i], sizeof(sockaddr_in6));
+		}
+		return (res != -1);
+	}
+
+	bool QueryTest() {
+		auto v = proto::serialize("query");
 		int res;
 		for (int i = 0; i < nodesCount; ++i) {
 	        res = sendto(_fd, v.data(), v.size(), 0, (sockaddr *)&addrs[i], sizeof(sockaddr_in6));

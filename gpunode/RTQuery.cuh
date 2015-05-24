@@ -1,3 +1,6 @@
+#ifndef RTQUERY_H_
+#define RTQUERY_H_
+
 #define RTCUBE_OP_NONE 0
 #define RTCUBE_OP_SUM 1
 #define RTCUBE_OP_MAX 2
@@ -69,4 +72,8 @@ typedef struct QueryResult
 
 void PrintQuerryResult(QueryResult result);
 
+std::string GetQuerryResultString(QueryResult result);
+
 void FreeResult(QueryResult result);
+
+#endif /* RTQUERY_H_ */

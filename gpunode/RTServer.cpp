@@ -130,6 +130,10 @@ void communicateDgram(int fd)
 	{
 		cubeStatus();
 	}
+	else if (V[0] == "query")
+	{
+		cubeQuery();
+	}
 	else
 	{
 		if (DEBUG_INFO)
