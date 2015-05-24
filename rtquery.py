@@ -24,26 +24,33 @@ def connect(addresses):
 		yield socket.create_connection(addr)
 
 def query(sockets, cubesql):
+
+	shall_close = False
 	if len(sockets):
 		try:
 			sockets[0].fileno()
 		except:
+			shall_close = True
 			sockets = list(connect(sockets))
-			try:
-				query_s(sockets, cubesql)
-				return
-			finally:
-				for s in sockets:
-					s.close()
 
-	query_s(sockets, cubesql)
+	try:
+		errorptr = ffi.new('struct RTCube_Error**') # RTCube_Error* allocated.
+		lib.RTCube_query([s.fileno() for s in sockets], len(sockets), cubesql.encode("utf-8"), errorptr)
+	finally:
+		if shall_close:
+			for s in sockets:
+				s.close()
 
-def query_s(sockets, cubesql):
-	errorptr = ffi.new('struct RTCube_error**') # RTCube_error* allocated.
-	lib.RTCube_query([s.fileno() for s in sockets], len(sockets), cubesql.encode("utf-8"), errorptr)
 	error = errorptr[0]
 	if error:
 		msg = ffi.string(error.message).decode("utf-8")
+		type = error.type
+		code = error.code
 		lib.RTCube_free_error(error)
-		raise ValueError(msg)
 
+		if type == lib.InvalidArgument:
+			raise ValueError(msg)
+		elif type == lib.SystemError:
+			raise OSError(code, msg)
+		else:
+			raise Exception

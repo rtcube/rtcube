@@ -58,13 +58,39 @@ namespace RTCube
 	}
 }
 
-void RTCube_free_error(RTCube_error* e)
+void RTCube_free_error(RTCube_Error* e)
 {
 	delete[] e->message;
 	delete e;
 }
 
-void RTCube_query(const int* sockets, int sockets_len, const_cstring cubesql, struct RTCube_error** error)
+inline void c_throw(std::invalid_argument& e, struct RTCube_Error** error)
+{
+	if (!error)
+		return;
+
+	*error = new RTCube_Error{};
+	auto len = strlen(e.what()) + 1;
+	(*error)->type = RTCube_Error::InvalidArgument;
+	(*error)->code = 0;
+	(*error)->message = new char[len];
+	memcpy((*error)->message, e.what(), len);
+}
+
+inline void c_throw(std::system_error& e, struct RTCube_Error** error)
+{
+	if (!error)
+		return;
+
+	*error = new RTCube_Error{};
+	auto len = strlen(e.what()) + 1;
+	(*error)->type = RTCube_Error::SystemError;
+	(*error)->code = e.code().value();
+	(*error)->message = new char[len];
+	memcpy((*error)->message, e.what(), len);
+}
+
+void RTCube_query(const int* sockets, int sockets_len, const_cstring cubesql, struct RTCube_Error** error)
 {
 	try
 	{
@@ -72,17 +98,15 @@ void RTCube_query(const int* sockets, int sockets_len, const_cstring cubesql, st
 	}
 	catch (std::invalid_argument& e)
 	{
-		if (error)
-		{
-			*error = new RTCube_error{};
-			auto len = strlen(e.what()) + 1;
-			(*error)->message = new char[len];
-			memcpy((*error)->message, e.what(), len);
-		}
+		c_throw(e, error);
+	}
+	catch (std::system_error& e)
+	{
+		c_throw(e, error);
 	}
 }
 
-void RTCube_connect_query(const const_cstring* hostports, int hostports_len, const_cstring cubesql, struct RTCube_error** error)
+void RTCube_connect_query(const const_cstring* hostports, int hostports_len, const_cstring cubesql, struct RTCube_Error** error)
 {
 	try
 	{
@@ -90,12 +114,10 @@ void RTCube_connect_query(const const_cstring* hostports, int hostports_len, con
 	}
 	catch (std::invalid_argument& e)
 	{
-		if (error)
-		{
-			*error = new RTCube_error{};
-			auto len = strlen(e.what()) + 1;
-			(*error)->message = new char[len];
-			memcpy((*error)->message, e.what(), len);
-		}
+		c_throw(e, error);
+	}
+	catch (std::system_error& e)
+	{
+		c_throw(e, error);
 	}
 }
