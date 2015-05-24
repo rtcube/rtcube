@@ -51,6 +51,10 @@ namespace RTCube
 	{
 		auto tokens = CubeSQL::tokenize(cubesql);
 		auto q = CubeSQL::parse(tokens);
+
+		for (auto s : sockets)
+			if (::send(s, cubesql.c_str(), cubesql.size() + 1, 0) != cubesql.size() + 1)
+				throw std::system_error{errno, std::system_category(), "RTCube::query(): send"};
 	}
 }
 
