@@ -89,6 +89,14 @@ int main(int argc, const char* argv[]){
 				cout << endl << "Status request error" << endl;
 			continue;
 		}
+		//i - status
+		if(line[0] == 'r'){
+			if (generator.QueryTest())
+				cout << endl << "Sent query request" << endl;
+			else
+				cout << endl << "Query request error" << endl;
+			continue;
+		}
 
 		//%d - Generate rows
 		try {no_rows = stoi(line);}

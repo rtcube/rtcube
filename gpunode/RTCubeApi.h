@@ -3,7 +3,7 @@
 
 void initCube();
 void cubeInsert(int *row, int size);
-void cubeQuery();
+std::string cubeQuery();
 void cubeStatus();
 
 #endif /* RTCUBEAPI_H_ */

@@ -283,6 +283,15 @@ public:
 		return (res != -1);
 	}
 
+	bool QueryTest() {
+		auto v = proto::serialize("query");
+		int res;
+		for (int i = 0; i < nodesCount; ++i) {
+	        res = sendto(_fd, v.data(), v.size(), 0, (sockaddr *)&addrs[i], sizeof(sockaddr_in6));
+		}
+		return (res != -1);
+	}
+
 	void ConnectAll(std::vector<HostPort> dests, std::vector<std::string> dests_str)
 	{
 		if ((_fd = socket(PF_INET6, SOCK_DGRAM, 0)) < 0){ perror("Opening socket."); exit(EXIT_FAILURE);}
