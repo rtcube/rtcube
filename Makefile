@@ -1,6 +1,6 @@
-all: test_proto test_tokenizer test_parser test_to_ir test_cudacore bin/send bin/server bin/row_generator
+all: test_proto test_tokenizer test_parser test_to_ir bin/send bin/server bin/row_generator gpunode #test_cudacore
 
-test: test_proto test_tokenizer test_parser test_to_ir test_cudacore test_server
+test: test_proto test_tokenizer test_parser test_to_ir test_server #test_cudacore
 
 test_proto: bin/tests/test_proto
 	./bin/tests/test_proto
@@ -36,7 +36,8 @@ gcc:
 
 CXX=g++
 #Use this to switch to gcc downloaded with make gcc:
-CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc
+#CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc
+CXX=./gcc/usr/bin/g++ -static-libgcc
 
 NVCC=nvcc -arch=sm_20
 
@@ -63,14 +64,20 @@ bin/server: util/* proto/* server/* .dirs2
 bin/row_generator: proto/* row-generator/* .dirs2
 	$(CXX14) proto/proto.cpp row-generator/RowGenerator.cpp -o ./bin/row_generator
 
-obj/RTCube.o: gpunode-cudacore/* ir/* .dirs2
-	$(NVCC) -c gpunode-cudacore/RTCube.cu -o obj/RTCube.o
+obj/RTCube.o: gpunode/* ir/* .dirs2
+	$(NVCC) -c gpunode/RTCube.cu -o obj/RTCube.o
 
-obj/RTQuery.o: gpunode-cudacore/* ir/* .dirs2
-	$(NVCC) -c gpunode-cudacore/RTQuery.cu -o obj/RTQuery.o
+obj/RTQuery.o: gpunode/* ir/* .dirs2
+	$(NVCC) -c gpunode/RTQuery.cu -o obj/RTQuery.o
 
-bin/tests/test_cudacore: obj/RTCube.o obj/RTQuery.o
-	$(NVCC) obj/RTCube.o obj/RTQuery.o gpunode-cudacore/main.cu -o bin/tests/test_cudacore
+obj/RTSample.o: gpunode/* ir/* .dirs2
+	$(NVCC) -c gpunode/RTSample.cu -o obj/RTSample.o
 
-frankenfile: obj/RTCube.o obj/RTQuery.o util/* proto/* server/* .dirs2
-	$(CXX14) proto/proto.cpp server/server.cpp obj/RTCube.o obj/RTQuery.o /usr/local/cuda/lib64/libcudart_static.a -pthread -ldl -lrt -o frankenfile
+#bin/tests/test_cudacore: obj/RTCube.o obj/RTQuery.o obj/RTSample.o
+#	$(NVCC) obj/RTCube.o obj/RTQuery.o obj/RTSample.o -o bin/tests/test_cudacore
+
+gpunode: obj/RTCube.o obj/RTQuery.o obj/RTSample.o util/* proto/* server/* .dirs2
+	$(CXX14) proto/proto.cpp gpunode/main.cpp gpunode/RTServer.cpp obj/RTCube.o obj/RTQuery.o obj/RTSample.o /usr/local/cuda/lib64/libcudart_static.a -pthread -ldl -lrt -o bin/gpunode
+
+gpunode-server: util/* proto/* server/* .dirs2
+	$(CXX14) proto/proto.cpp gpunode/main.cpp gpunode/RTServer.cpp obj/RTCube.o obj/RTQuery.o obj/RTSample.o /usr/local/cuda/lib64/libcudart_static.a -pthread -ldl -lrt -o bin/gpunode

@@ -96,11 +96,8 @@ void PrepareDataForInsert(int vecCount, int dimCount, int **dims, int measCount,
 	free(h_measPacked);
 }
 
-int main()
+void RunSample()
 {
-	srand(time(NULL));
-
-
 	//Wygenerowanie przykładowych danych - normalnie trzeba je odebrać z sieci
 	int vectorsCount = 200000;
 	int dimensionsCount = 6;
@@ -178,7 +175,7 @@ int main()
 	printf ("Time of insert: %f ms\n\n", time);
 
 	PrintCubeInfo(cube);
-	//PrintCubeMemory(cube);	//Można wypisać do celów testowych pamięć kostki 
+	//PrintCubeMemory(cube);	//Można wypisać do celów testowych pamięć kostki
 
 	//Przykładowe Query do kostki - trzeba zbudować strukturę Query na podstawie reprezentacji pośredniej
 	printf("Sample Querry\n");
@@ -216,7 +213,7 @@ int main()
 	q.d_WhereDimValuesCounts[2] = 3;	//ile wartości w zbiorze
 	q.d_WhereDimValuesCounts[3] = dimRanges[3];	//ile wszystkich wartości dla wymiaru
 
-	//Tutaj wpisujemy początki i końce zakresów 
+	//Tutaj wpisujemy początki i końce zakresów
 	q.d_WhereStartRange[0] = 0;
 	q.d_WhereStartRange[3] = 0;
 
@@ -261,13 +258,8 @@ int main()
 	FreeResult(result);
 	FreeQuerry(q);
 
-	
+
 	//Przy zabijaniu node trzeba zwolnić kostkę
 	FreeCube(cube);
-
-
-	//i wszystko :D
-	return 0;
 }
-
 
