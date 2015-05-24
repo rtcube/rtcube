@@ -11,9 +11,9 @@
 
 namespace RTCube
 {
-	auto connect(const std::vector<std::string> hostports) -> std::vector<int> // sockets
+	auto connect(const std::vector<std::string> hostports) -> std::vector<fd> // sockets
 	{
-		std::vector<int> sockets;
+		std::vector<fd> sockets;
 		sockets.reserve(hostports.size());
 		for (const auto& hps : hostports)
 		{
@@ -32,9 +32,14 @@ namespace RTCube
 			if (::connect(s, (sockaddr*) &sin6, sizeof(sin6)) != 0)
 				throw std::system_error{errno, std::system_category(), "RTCube::query(): connect"};
 
-			sockets.push_back(s);
+			sockets.emplace_back(s);
 		}
 		return sockets;
+	}
+
+	void query(const std::vector<fd> sockets, const std::string& cubesql)
+	{
+		query(std::vector<int>{sockets.begin(), sockets.end()}, cubesql);
 	}
 
 	void query(const std::vector<int> sockets, const std::string& cubesql)
@@ -55,11 +60,11 @@ void RTCube_free_error(RTCube_error* e)
 	delete e;
 }
 
-void RTCube_query(const int* sockets_a, int sockets_len, const_cstring cubesql, struct RTCube_error** error)
+void RTCube_query(const int* sockets, int sockets_len, const_cstring cubesql, struct RTCube_error** error)
 {
 	try
 	{
-		RTCube::query(std::vector<int>{sockets_a, sockets_a + sockets_len}, cubesql);
+		RTCube::query(std::vector<int>{sockets, sockets + sockets_len}, cubesql);
 	}
 	catch (std::invalid_argument& e)
 	{
