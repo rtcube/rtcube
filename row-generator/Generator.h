@@ -15,6 +15,8 @@
 #include "../proto/proto.h"
 #include "../util/HostPort.h"
 
+#define DEBUG_INFO false
+
 #define DATA_FILENAME "cube.data"
 using namespace std;
 class RowGenerator{
@@ -29,6 +31,10 @@ private:
 	//socket
 	int _fd;
 	struct sockaddr_in6 _sin6;
+
+	std::vector<sockaddr_in6> addrs;
+	int nodesCount;
+	int currentNode = 0;
 
 	inline int sendRow(string row){
 		int bytes = sendto(_fd, row.data(), row.size(), 0,
@@ -162,6 +168,7 @@ public:
 	}
 	// Generates rows based on the loaded file
 	void Generate(int no_rows, bool with_time = true){
+		std::cout << "Gen" << std::endl;
 		if (!canGenerateFromFile()){
             std::cerr << "Cannot generate from file" << endl;
 			return;
@@ -171,12 +178,30 @@ public:
 		long sent = 0;
         for (int i = 0; i < no_rows; ++i){
             auto row = generateIntRow(i, with_time);
-    		int bytes = sendto(_fd, row.data(), row.size(), 0, (::sockaddr*)&_sin6, sizeof(_sin6));
+            int sendToNode = currentNode;
+            currentNode = (currentNode + 1) % nodesCount;
+//	        res = sendto(_fd, v.data(), v.size(), 0, (sockaddr *)&addrs[i], sizeof(sockaddr_in6));
+    		int bytes = sendto(_fd, row.data(), row.size(), 0, (::sockaddr*)&addrs[sendToNode], sizeof(sockaddr_in6));
     		if (bytes == -1) {
     		    std::cout << "sendto error: " << strerror(errno) << endl;
     		}
     		else {
     			sent += bytes;
+    		}
+
+    		if (DEBUG_INFO)
+    		{
+				auto V = proto::unserialize(row);
+				std::cout << "Sent: ";
+				for (auto v : V)
+				{
+					try
+					{
+						std::cout << int(v) << " "; // cout is required, so compiler won't optimize int() away.
+					}
+					catch (std::domain_error&) {}
+				}
+				std::cout << std::endl;
     		}
             //saveRow(row);
         }
@@ -248,6 +273,38 @@ public:
 		}
 
 		return true;
+	}
+
+	bool StatusRequest() {
+		auto v = proto::serialize("status");
+		int res;
+		for (int i = 0; i < nodesCount; ++i) {
+	        res = sendto(_fd, v.data(), v.size(), 0, (sockaddr *)&addrs[i], sizeof(sockaddr_in6));
+		}
+		return (res != -1);
+	}
+
+	void ConnectAll(std::vector<HostPort> dests, std::vector<std::string> dests_str)
+	{
+		if ((_fd = socket(PF_INET6, SOCK_DGRAM, 0)) < 0){ perror("Opening socket."); exit(EXIT_FAILURE);}
+		nodesCount = dests.size();
+        auto v = proto::serialize("hello");
+		for (int i = 0; i < nodesCount; ++i)
+		{
+			sockaddr_in6 addr;
+			::memset(&addr, 0, sizeof(sockaddr_in6));
+			addr.sin6_family = AF_INET6;
+			::memcpy(&(addr.sin6_addr), dests[i].ip, 16);
+			addr.sin6_port = dests[i].port;
+			addrs.push_back(addr);
+
+	        int res = sendto(_fd, v.data(), v.size(), 0, (sockaddr *)&addrs[i], sizeof(sockaddr_in6));
+	        if (res == -1)
+	        	std::cout << "Error communicating with " << dests_str[i] << std::endl;
+	        else if (res == v.size())
+	        	std::cout << "Connected with " << dests_str[i] << " -- " << "" << std::endl;
+		}
+		_connected = true;
 	}
 
 	bool Connect(HostPort dest){

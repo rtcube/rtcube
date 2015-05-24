@@ -32,32 +32,40 @@ int main(int argc, const char* argv[]){
 //	port = std::stoi(argv[2]);
 //	ip = argv[1];
 
-	auto dest = HostPort{argv[1]};
-
-	if (from_file = (argc == 3)){
-		filepath = argv[2];
-		if (!generator.LoadCubeFile(filepath)){
-			cout << "Couldn't load cube file " << filepath << endl;
-			return 1;
-		}
-		no_cols = generator.NoColumns();
-	}else{
-		no_cols = std::stoi(argv[3]);
-		if (no_cols < 1){
-			cerr << "Number of columns must be at least 1" << endl;
-			return 3;
-		}
-		generator.SetNoColumns(no_cols);
+//	if (from_file = (argc == 3)){
+	from_file = true;
+	filepath = argv[1];
+	if (!generator.LoadCubeFile(filepath)){
+		cout << "Couldn't load cube file " << filepath << endl;
+		return 1;
 	}
+	no_cols = generator.NoColumns();
 
-	if (!generator.Connect(dest)){
-		cerr << "Could not connect to " << ip << ":" << port << endl;
-		return 2;
+//	}else{
+//		no_cols = std::stoi(argv[3]);
+//		if (no_cols < 1){
+//			cerr << "Number of columns must be at least 1" << endl;
+//			return 3;
+//		}
+//		generator.SetNoColumns(no_cols);
+//	}
+
+//	if (!generator.Connect(dest)){
+//		cerr << "Could not connect to " << ip << ":" << port << endl;
+//		return 2;
+//	}
+	int sinkCount = argc - 2;
+	auto dests = std::vector<HostPort>{};
+	auto dests_str = std::vector<std::string>{};
+	for (int i = 2; i < argc; ++i) {
+		dests.push_back(HostPort{argv[i]});
+		dests_str.push_back(string{argv[i]});
 	}
+	generator.ConnectAll(dests, dests_str);
 
 	std::string line;
 	while(true){
-		cout << "%d - generate rows; S|s - send data; Q|q - quit:" << endl;
+		cout << "%d - generate rows; S|s - send data; i - status; Q|q - quit:" << endl;
 		getline(cin, line);
 
 		//Q|q - exit
@@ -73,6 +81,14 @@ int main(int argc, const char* argv[]){
             cout << endl << "Sent "<< bytes << " bytes - " << bytes/ seconds / 1024 / 1024 << " Mbytes/s" << endl;
             continue;
         }
+		//i - status
+		if(line[0] == 'i'){
+			if (generator.StatusRequest())
+				cout << endl << "Sent status request" << endl;
+			else
+				cout << endl << "Status request error" << endl;
+			continue;
+		}
 
 		//%d - Generate rows
 		try {no_rows = stoi(line);}
