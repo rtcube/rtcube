@@ -11,7 +11,7 @@
 
 namespace RTCube
 {
-	auto connect(const std::vector<std::string> hostports) -> std::vector<fd> // sockets
+	auto connect(const std::vector<std::string>& hostports) -> std::vector<fd> // sockets
 	{
 		std::vector<fd> sockets;
 		sockets.reserve(hostports.size());
@@ -37,20 +37,20 @@ namespace RTCube
 		return sockets;
 	}
 
-	void query(const std::vector<fd> sockets, const std::string& cubesql)
+	void query(const std::vector<std::string>& hostports, const std::string& cubesql)
+	{
+		query(connect(hostports), cubesql);
+	}
+
+	void query(const std::vector<fd>& sockets, const std::string& cubesql)
 	{
 		query(std::vector<int>{sockets.begin(), sockets.end()}, cubesql);
 	}
 
-	void query(const std::vector<int> sockets, const std::string& cubesql)
+	void query(const std::vector<int>& sockets, const std::string& cubesql)
 	{
 		auto tokens = CubeSQL::tokenize(cubesql);
 		auto q = CubeSQL::parse(tokens);
-	}
-
-	void query(const std::vector<std::string> hostports, const std::string& cubesql)
-	{
-		query(connect(hostports), cubesql);
 	}
 }
 
