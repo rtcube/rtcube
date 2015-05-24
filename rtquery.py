@@ -1,4 +1,5 @@
 from cffi import FFI
+import socket
 
 ffi = FFI()
 
@@ -18,9 +19,19 @@ ffi.cdef("\n".join(deifdef(open("librtquery/query.h"))))
 
 lib = ffi.dlopen('./lib/librtquery.so')
 
-def query(cubesql):
+def connect(addresses):
+	for addr in addresses:
+		yield socket.create_connection(addr)
+
+def query(sockets, cubesql):
+	if len(sockets):
+		try:
+			sockets[0].fileno()
+		except:
+			sockets = list(connect(sockets))
+
 	errorptr = ffi.new('struct RTCube_error**') # RTCube_error* allocated.
-	lib.RTCube_query([], 0, cubesql.encode("utf-8"), errorptr)
+	lib.RTCube_query([s.fileno() for s in sockets], len(sockets), cubesql.encode("utf-8"), errorptr)
 	error = errorptr[0]
 	if error:
 		msg = ffi.string(error.message).decode("utf-8")
