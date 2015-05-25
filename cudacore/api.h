@@ -9,6 +9,8 @@ namespace CudaCore
 	{
 		RTCubeP* p;
 
+		RTCube(const RTCube&); // = delete
+
 	public:
 		RTCube(IR::CubeDef);
 		~RTCube();
