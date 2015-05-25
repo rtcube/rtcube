@@ -2,13 +2,13 @@ all: compile test
 
 nocuda: compile_nocuda test_nocuda
 
-compile: bin/send bin/server bin/row_generator lib/librtquery.so lib/librtcudacore.so bin/gpunode
+compile: compile_nocuda lib/librtcudacore.so bin/gpunode
 
-compile_nocuda: bin/send bin/server bin/row_generator lib/librtquery.so
+compile_nocuda: bin/send bin/server bin/row_generator lib/librtquery.so lib/librtdummycore.so
 
-test: test_proto test_tokenizer test_parser test_to_ir test_server test_cudacore
+test: test_nocuda test_cudacore test_core_cuda
 
-test_nocuda: test_proto test_tokenizer test_parser test_to_ir test_server 
+test_nocuda: test_proto test_tokenizer test_parser test_to_ir test_server test_core_dummy
 
 test_proto: bin/tests/test_proto
 	./bin/tests/test_proto
@@ -24,6 +24,9 @@ test_to_ir: bin/tests/test_to_ir
 
 test_cudacore: bin/tests/test_cudacore
 	./bin/tests/test_cudacore
+
+test_core_dummy: bin/tests/test_core_dummy
+	LD_LIBRARY_PATH=./lib ./bin/tests/test_core_dummy
 
 test_core_cuda: bin/tests/test_core_cuda
 	LD_LIBRARY_PATH=./lib ./bin/tests/test_core_cuda
@@ -80,6 +83,14 @@ lib/librtquery.so: cubesql/* librtquery/* .dirs3
 	rm -f ./lib/librtquery.so
 	ln -s librtquery.so.0 ./lib/librtquery.so
 
+lib/librtdummycore.so: dummycore/* ir/* .dirs3
+	$(CXX14) -shared -fPIC dummycore/api.cpp -o ./lib/librtdummycore.so.0
+	rm -f ./lib/librtdummycore.so
+	ln -s librtdummycore.so.0 ./lib/librtdummycore.so
+
+bin/tests/test_core_dummy: lib/librtdummycore.so ir/* dummycore/api.h test_core.cpp .dirs3
+	$(CXX14) -include dummycore/api.h -DCORE_API=DummyCore test_core.cpp -Llib -lrtdummycore -o bin/tests/test_core_dummy
+
 obj/cudacore/RTCube.o: cudacore/*.cuh cudacore/RTCube.cu .dirs3
 	$(NVCC) -c --compiler-options -fPIC cudacore/RTCube.cu -o obj/cudacore/RTCube.o
 
@@ -101,7 +112,7 @@ obj/cudacore/sample.o: cudacore/*.cuh cudacore/sample.cu .dirs3
 bin/tests/test_cudacore: obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTUtil.o obj/cudacore/sample.o
 	$(NVCC) obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTUtil.o obj/cudacore/sample.o -o bin/tests/test_cudacore
 
-lib/librtcudacore.so: obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTCubeApi.o obj/cudacore/RTUtil.o obj/cudacore/api.o cubesql/* librtquery/* .dirs3
+lib/librtcudacore.so: obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTCubeApi.o obj/cudacore/RTUtil.o obj/cudacore/api.o .dirs3
 	$(NVCC) -shared --compiler-options -fPIC obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTCubeApi.o obj/cudacore/RTUtil.o obj/cudacore/api.o -o ./lib/librtcudacore.so.0
 	rm -f ./lib/librtcudacore.so
 	ln -s librtcudacore.so.0 ./lib/librtcudacore.so

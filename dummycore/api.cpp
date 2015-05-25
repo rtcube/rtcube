@@ -1,16 +1,14 @@
 #include "api.h"
 
-#include "RTCube.cuh"
-
-namespace CudaCore
+namespace DummyCore
 {
 	struct RTCubeP
 	{
-		::RTCube cube;
+		IR::CubeDef def;
 	};
 
-	RTCube::RTCube(const IR::CubeDef&)
-		: p(new RTCubeP())
+	RTCube::RTCube(const IR::CubeDef& d)
+		: p(new RTCubeP{d})
 	{}
 
 	RTCube::~RTCube()

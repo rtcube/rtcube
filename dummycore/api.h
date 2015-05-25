@@ -2,7 +2,7 @@
 
 #include "../ir/IR.h"
 
-namespace CudaCore
+namespace DummyCore
 {
 	class RTCubeP;
 	class RTCube
