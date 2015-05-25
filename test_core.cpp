@@ -6,7 +6,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-	RTCube cube{CubeDef{}};
+	auto cube = RTCube{CubeDef{}};
 
 	cube.insert(Rows{0, 0, 0});
 

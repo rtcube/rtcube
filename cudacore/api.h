@@ -15,6 +15,10 @@ namespace CudaCore
 		RTCube(IR::CubeDef);
 		~RTCube();
 
+#if __cplusplus >= 201103L
+		RTCube(RTCube&& o): p(o.p) {o.p = 0;}
+#endif
+
 		void insert(IR::Rows);
 		IR::QueryResult query(IR::Query);
 	};
