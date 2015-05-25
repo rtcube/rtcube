@@ -17,6 +17,7 @@
 #include "../util/HostPort.h"
 
 #define ROWS_PER_BLOCK 1000000
+#define BUFFER_SIZE 4096
 
 using namespace std;
 
@@ -92,17 +93,23 @@ bool QueryTest(std::vector<socket_info*> sockets) {
 	int res;
 	for (socket_info* socket : sockets) {
         res = sendto(socket->fd, v.data(), v.size(), 0, (sockaddr *)&(socket->sin6), sizeof(sockaddr_in6));
+		if (res == -1){
+			return false;
+		}
     }
-    return (res != -1);
+    return true;
 }
 
 bool StatusRequest(std::vector<socket_info*> sockets) {
-		auto v = proto::serialize("status");
-		int res;
-		for (socket_info* socket : sockets) {
-            res = sendto(socket->fd, v.data(), v.size(), 0, (sockaddr *)&(socket->sin6), sizeof(sockaddr_in6));
-        }
-		return (res != -1);
+	auto v = proto::serialize("status");
+	int res;
+	for (socket_info* socket : sockets) {
+		res = sendto(socket->fd, v.data(), v.size(), 0, (sockaddr *)&(socket->sin6), sizeof(sockaddr_in6));
+		if (res == -1){
+			return false;
+		}
+    }
+	return true;
 }
 }
 
@@ -151,13 +158,20 @@ bool canGenerateFromCube(cube_info *cube) {
 int generateRows(int no_rows, unsigned int * rand_r_seed,  cube_info *cube, std::vector<socket_info*> sockets,
   bool with_time = true) {
 
-    int socket_index;
+    int socket_index = 0;
+    int sockets_size = sockets.size();
+	int rows_per_send = BUFFER_SIZE / cube->no_cols / (sizeof(int) + 1);
+	std::string row = "";
+	
     int bytes = 0;
     for (int i = 0; i < no_rows; ++i) {
-        auto row = generateIntRow(i % 10, rand_r_seed, cube,  with_time);
-        //bytes += row.size();
-        socket_index = i % sockets.size();
-        bytes += sendRow(sockets[socket_index], row);
+        row += generateIntRow(i % 10, rand_r_seed, cube,  with_time);
+
+		if ((i % rows_per_send) == 0){
+			socket_index = (socket_index + 1) % sockets.size();
+			bytes += sendRow(sockets[socket_index], row);
+			row = "";
+		}
     }
     return bytes;
 }
