@@ -1,8 +1,14 @@
 all: compile test
 
+nocuda: compile_nocuda test_nocuda
+
 compile: bin/send bin/server bin/row_generator lib/librtquery.so lib/librtcudacore.so bin/gpunode
 
+compile_nocuda: bin/send bin/server bin/row_generator lib/librtquery.so
+
 test: test_proto test_tokenizer test_parser test_to_ir test_server test_cudacore
+
+test_nocuda: test_proto test_tokenizer test_parser test_to_ir test_server 
 
 test_proto: bin/tests/test_proto
 	./bin/tests/test_proto
