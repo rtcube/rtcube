@@ -82,7 +82,7 @@ void try_parse_as_number(token& t)
 		t.val = std::stod(t.code);
 }
 
-auto tokenize(std::string data) -> std::vector<token>
+auto tokenize(const std::string& data) -> std::vector<token>
 {
 	auto i = size_t{0};
 	auto tokens = std::vector<token>{};

@@ -10,7 +10,7 @@ using namespace std;
 
 void testCubeDef()
 {
-	auto tokens = CubeSQL::tokenize(R"(
+	auto cube = CubeSQL::parseCubeDef(R"(
 dim recv TIME,
 
 dim yob <1900,2015>,
@@ -19,8 +19,6 @@ dim pesel <0,9>[11],
 
 mea signatures <0,1000000>,
 mea applications <0,100000>)");
-
-	auto cube = CubeSQL::parseCubeDef(tokens);
 
 	auto ir = toIR(cube);
 	assert(ir.dims.size() == 1 + 1 + 7 + 11);
@@ -39,7 +37,7 @@ mea applications <0,100000>)");
 
 void testRows()
 {
-	auto tokens = CubeSQL::tokenize(R"(
+	auto cube = CubeSQL::parseCubeDef(R"(
 dim recv TIME,
 
 dim yob <1900,2015>,
@@ -48,7 +46,6 @@ dim pesel <0,9>[11],
 
 mea signatures <0,1000000>,
 mea applications <0,100000>)");
-	auto cube = CubeSQL::parseCubeDef(tokens);
 	auto cube_ir = toIR(cube);
 
 	auto data = std::vector<proto::value>{

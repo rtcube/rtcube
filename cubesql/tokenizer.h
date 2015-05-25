@@ -6,5 +6,5 @@
 
 namespace CubeSQL
 {
-	auto tokenize(std::string data) -> std::vector<token>;
+	auto tokenize(const std::string& data) -> std::vector<token>;
 }

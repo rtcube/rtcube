@@ -9,7 +9,7 @@ using namespace std;
 
 void testSelect()
 {
-	auto tokens = CubeSQL::tokenize(R"(
+	auto q = CubeSQL::parse(R"(
 SELECT
     locality, yob, SUM(signatures)
 WHERE
@@ -22,8 +22,6 @@ ORDER BY
     SUM(signatures) DESC
 LIMIT
     5)");
-
-	auto q = CubeSQL::parse(tokens);
 
 	{
 		assert(q.select.size() == 3);
@@ -86,7 +84,7 @@ LIMIT
 
 void testCubeDef()
 {
-	auto tokens = CubeSQL::tokenize(R"(
+	auto cube = CubeSQL::parseCubeDef(R"(
 dim recv TIME,
 
 dim yob <1900,2015>,
@@ -96,8 +94,6 @@ dim pesel CHAR[11],
 
 mea signatures <0,1000000>,
 mea applications <0,100000>)");
-
-	auto cube = CubeSQL::parseCubeDef(tokens);
 
 	assert(cube.dims.size() == 5);
 	assert(cube.meas.size() == 2);

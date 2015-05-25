@@ -387,3 +387,19 @@ auto parseCubeDef(const std::vector<token>& data) -> CubeDef
 }
 
 }
+
+#include "tokenizer.h"
+
+namespace CubeSQL {
+
+auto parse(const std::string& data) -> Select
+{
+	return parse(tokenize(data));
+}
+
+auto parseCubeDef(const std::string& data) -> CubeDef
+{
+	return parseCubeDef(tokenize(data));
+}
+
+}
