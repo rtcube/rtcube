@@ -78,7 +78,6 @@ std::vector<socket_info*> LoadAddressesFile(std::string filename){
     }
 
     std::string line;
-    std::getline(file, line);
 
     while (std::getline(file, line)) {
         auto socket = makeSocket(HostPort(line));
