@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdlib>
 #include <vector>
 
 // Intermediate Representation
@@ -61,4 +62,7 @@ namespace IR
 		ConstRowRef operator[](size_t i) const { return {this, i}; }
 		RowRef operator[](size_t i) { return {this, i}; }
 	};
+
+	struct Query {};
+	struct QueryResult {};
 }

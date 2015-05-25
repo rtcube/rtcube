@@ -19,6 +19,9 @@ test_to_ir: bin/tests/test_to_ir
 test_cudacore: bin/tests/test_cudacore
 	./bin/tests/test_cudacore
 
+test_core_cuda: bin/tests/test_core_cuda
+	LD_LIBRARY_PATH=./lib ./bin/tests/test_core_cuda
+
 test_server: bin/server bin/send
 	./bin/server "[::]:2121" &
 	./bin/send "[::1]:2121" hello world
@@ -41,7 +44,7 @@ CXX=g++
 #CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc
 CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc
 
-NVCC=nvcc -arch=sm_20
+NVCC=nvcc -arch=sm_20 --compiler-options -std=c++11 -U__GXX_EXPERIMENTAL_CXX0X__
 
 CXX14=$(CXX) --std=c++14 -I cxxcompat/include
 
@@ -83,16 +86,22 @@ obj/cudacore/RTUtil.o: cudacore/*.cuh cudacore/RTUtil.cu .dirs3
 obj/cudacore/RTCubeApi.o: ir/*.h cudacore/*.h cudacore/*.cuh cudacore/RTCubeApi.cu .dirs3
 	$(NVCC) -c --compiler-options -fPIC cudacore/RTCubeApi.cu -o obj/cudacore/RTCubeApi.o
 
+obj/cudacore/api.o: ir/*.h cudacore/*.h cudacore/*.cuh cudacore/api.cu .dirs3
+	$(NVCC) -c --compiler-options -fPIC cudacore/api.cu -o obj/cudacore/api.o
+
 obj/cudacore/sample.o: cudacore/*.cuh cudacore/sample.cu .dirs3
 	$(NVCC) -c cudacore/sample.cu -o obj/cudacore/sample.o
 
 bin/tests/test_cudacore: obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTUtil.o obj/cudacore/sample.o
 	$(NVCC) obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTUtil.o obj/cudacore/sample.o -o bin/tests/test_cudacore
 
-lib/librtcudacore.so: obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTCubeApi.o obj/cudacore/RTUtil.o cubesql/* librtquery/* .dirs3
-	$(NVCC) -shared --compiler-options -fPIC obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTCubeApi.o obj/cudacore/RTUtil.o -o ./lib/librtcudacore.so.0
+lib/librtcudacore.so: obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTCubeApi.o obj/cudacore/RTUtil.o obj/cudacore/api.o cubesql/* librtquery/* .dirs3
+	$(NVCC) -shared --compiler-options -fPIC obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTCubeApi.o obj/cudacore/RTUtil.o obj/cudacore/api.o -o ./lib/librtcudacore.so.0
 	rm -f ./lib/librtcudacore.so
 	ln -s librtcudacore.so.0 ./lib/librtcudacore.so
+
+bin/tests/test_core_cuda: lib/librtcudacore.so ir/* cudacore/api.h test_core.cpp .dirs3
+	$(CXX14) -include cudacore/api.h -DCORE_API=CudaCore test_core.cpp -Llib -lrtcudacore -o bin/tests/test_core_cuda
 
 bin/gpunode: lib/librtcudacore.so gpunode/* util/* proto/* server/* .dirs3
 	$(CXX14) proto/proto.cpp gpunode/main.cpp gpunode/RTServer.cpp -Llib -lrtcudacore -o bin/gpunode
