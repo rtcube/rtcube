@@ -1,5 +1,7 @@
 #include "api.h"
 
+#include <cassert>
+
 namespace DummyCore
 {
 	struct RTCubeP
@@ -16,9 +18,10 @@ namespace DummyCore
 		delete p;
 	}
 
-	void RTCube::insert(const IR::Rows&)
+	void RTCube::insert(const IR::Rows& rows)
 	{
-
+		assert(rows.num_dims == p->def.dims.size());
+		assert(rows.num_meas == p->def.meas.size());
 	}
 
 	IR::QueryResult RTCube::query(const IR::Query&)

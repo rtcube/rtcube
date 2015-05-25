@@ -9,11 +9,15 @@ namespace IR
 	struct Dim
 	{
 		uint range; // amount of different values
+
+		inline Dim(uint range = 0): range(range) {}
 	};
 
 	struct Mea
 	{
 		enum Type: uint { Int, Float } type;
+
+		inline Mea(Type type = Int): type(type) {}
 	};
 
 	struct CubeDef
