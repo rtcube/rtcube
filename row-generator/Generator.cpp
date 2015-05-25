@@ -93,9 +93,9 @@ bool QueryTest(std::vector<socket_info*> sockets) {
 	int res;
 	for (socket_info* socket : sockets) {
         res = sendto(socket->fd, v.data(), v.size(), 0, (sockaddr *)&(socket->sin6), sizeof(sockaddr_in6));
-		if (res == -1){
-			return false;
-		}
+	if (res == -1){
+		return false;
+	}
     }
     return true;
 }
@@ -167,11 +167,11 @@ int generateRows(int no_rows, unsigned int * rand_r_seed,  cube_info *cube, std:
     for (int i = 0; i < no_rows; ++i) {
         row += generateIntRow(i % 10, rand_r_seed, cube,  with_time);
 
-		if ((i % rows_per_send) == 0){
-			socket_index = (socket_index + 1) % sockets.size();
-			bytes += sendRow(sockets[socket_index], row);
-			row = "";
-		}
+	if ((i % rows_per_send) == 0){
+		socket_index = (socket_index + 1) % sockets.size();
+		bytes += sendRow(sockets[socket_index], row);
+		row = "";
+	}
     }
     return bytes;
 }
