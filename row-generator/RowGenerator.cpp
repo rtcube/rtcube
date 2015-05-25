@@ -12,32 +12,35 @@ using namespace std;
 
 void usage() {
     cerr << "USAGE: " << endl;
-    cerr << "row-generator ip port cube_filename [no_threads]" << endl;
+    cerr << "row-generator ip:port cube_filename [no_threads]" << endl;
     exit(0);
 }
 
 int main(int argc, const char* argv[]) {
     Generator::cube_info * cube;
-    int port, no_cols, no_rows, no_threads = 2;
-    const char* ip, * filepath;
+    std::vector<Generator::socket_info*> sockets;
+    int no_blocks, no_threads = 2;
+    std::string addresses_filepath, cube_filepath;
 
-    if (argc < 4) {
+    if (argc < 3) {
         usage();
     }
-    port = std::stoi(argv[2]);
-    ip = argv[1];
-    filepath = argv[3];
-    if (!(cube = Generator::LoadCubeFile(filepath))) {
-        cout << "Couldn't load cube file " << filepath << endl;
+
+    addresses_filepath = argv[1];
+    sockets = Generator::LoadAddressesFile(addresses_filepath);
+
+    cube_filepath = argv[2];
+    if (!(cube = Generator::LoadCubeFile(cube_filepath))) {
+        cerr << "Couldn't load cube file " << cube_filepath << endl;
         return 1;
     }
-    if (argc == 5) {
-        no_threads = std::stoi(argv[4]);
+    if (argc == 4) {
+        no_threads = std::stoi(argv[3]);
     }
 
     std::string line;
     while(true) {
-        cout << "%d - generate %d blocks; Q|q - quit:" << endl;
+        cout << "%d - generate %d blocks; i - status request; r - query test; Q|q - quit:" << endl;
         getline(cin, line);
 
         //Q|q - exit
@@ -45,15 +48,32 @@ int main(int argc, const char* argv[]) {
             return 0;
         }
 
+        // i - status
+		if(line[0] == 'i'){
+			if (Generator::StatusRequest(sockets))
+				cout << endl << "Sent status request" << endl;
+			else
+				cout << endl << "Status request error" << endl;
+			continue;
+		}
+		// r - query test
+        if(line[0] == 'r'){
+			if (Generator::QueryTest(sockets))
+				cout << endl << "Sent query request" << endl;
+			else
+				cout << endl << "Query request error" << endl;
+			continue;
+ 		}
+
         //%d - Generate rows
         try {
-            no_rows = stoi(line);
+            no_blocks = stoi(line);
         }
         catch (const std::invalid_argument& ia) {
             //std::cerr << "Invalid argument: " << ia.what() << '\n';
             continue;
         }
-        Generator::StartGenerating(no_rows,cube, ip, port, no_threads);
+        Generator::StartGenerating(no_blocks,cube, sockets, no_threads);
     }
     return 0;
 }

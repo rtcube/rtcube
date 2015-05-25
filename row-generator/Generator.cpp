@@ -10,9 +10,11 @@
 #include <string>
 #include <fstream>
 #include <stdio.h>
-#include "../proto/proto.h"
 #include <thread>
 #include <ctime>
+
+#include "../proto/proto.h"
+#include "../util/HostPort.h"
 
 #define ROWS_PER_BLOCK 1000000
 
@@ -25,14 +27,14 @@ struct socket_info {
     struct sockaddr_in6 sin6;
 };
 
-socket_info * makeSocket(int port, std::string address, bool test_connectivity = false) {
+socket_info * makeSocket(HostPort dest, bool test_connectivity = false) {
     socket_info * new_socket = new socket_info();
     int fd;
     struct sockaddr_in6 sin6;
-    memset(&sin6, 0, sizeof(sin6));
+    ::memset(&sin6, 0, sizeof(sin6));
     sin6.sin6_family = AF_INET6;
-    inet_pton(AF_INET6, address.data(), &(sin6.sin6_addr));
-    sin6.sin6_port=htons(port);
+    ::memcpy(&sin6.sin6_addr, dest.ip, 16);
+	sin6.sin6_port = dest.port;
 
     if ((fd = socket(PF_INET6, SOCK_DGRAM, 0)) < 0) {
         perror("Opening socket.");
@@ -60,11 +62,48 @@ inline int sendRow(socket_info * socket, string &row) {
                        (struct sockaddr *)&(socket->sin6),sizeof(socket->sin6));
     if (bytes < 0) {
         perror("Sendto");
-        std::cerr << socket->fd << endl;
-        return 0;
+        return -1;
     }
 
     return bytes;
+}
+
+std::vector<socket_info*> LoadAddressesFile(std::string filename){
+    std::vector<socket_info*> sockets;
+
+    std::ifstream file(filename.c_str());
+    if (!file.is_open()) {
+        std::cerr << "Unable to open addresses file " << filename << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    std::string line;
+    std::getline(file, line);
+
+    while (std::getline(file, line)) {
+        auto socket = makeSocket(HostPort(line));
+        sockets.push_back(socket);
+    }
+
+    return sockets;
+}
+
+bool QueryTest(std::vector<socket_info*> sockets) {
+	auto v = proto::serialize("query");
+	int res;
+	for (socket_info* socket : sockets) {
+        res = sendto(socket->fd, v.data(), v.size(), 0, (sockaddr *)&(socket->sin6), sizeof(sockaddr_in6));
+    }
+    return (res != -1);
+}
+
+bool StatusRequest(std::vector<socket_info*> sockets) {
+		auto v = proto::serialize("status");
+		int res;
+		for (socket_info* socket : sockets) {
+            res = sendto(socket->fd, v.data(), v.size(), 0, (sockaddr *)&(socket->sin6), sizeof(sockaddr_in6));
+        }
+		return (res != -1);
 }
 }
 
@@ -110,44 +149,47 @@ bool canGenerateFromCube(cube_info *cube) {
     return true;
 }
 
-int generateRows(int no_rows, unsigned int * rand_r_seed,  cube_info *cube, socket_info *socket,  bool with_time = true) {
+int generateRows(int no_rows, unsigned int * rand_r_seed,  cube_info *cube, std::vector<socket_info*> sockets,
+  bool with_time = true) {
+
+    int socket_index;
     int bytes = 0;
     for (int i = 0; i < no_rows; ++i) {
         auto row = generateIntRow(i % 10, rand_r_seed, cube,  with_time);
-        bytes += row.size();
-        sendRow(socket, row);
+        //bytes += row.size();
+        socket_index = i % sockets.size();
+        bytes += sendRow(sockets[socket_index], row);
     }
     return bytes;
 }
 
-void TGenerate(int thread_nr, int no_blocks, cube_info *cube, socket_info *socket) {
+void TGenerate(int thread_nr, int no_blocks, cube_info *cube, std::vector<socket_info*> sockets) {
     unsigned int rand_r_seed = (unsigned int) thread_nr;
     for(int i=0; i < no_blocks; ++i) {
-        time_t startTime, endTime;
-        time(&startTime);
+        timespec ts_start;
+		clock_gettime(CLOCK_REALTIME, &ts_start); // Works on Linux
+
         std::cout << "Thread[" << thread_nr << "] - generating data block no "<< i +1 << std::endl;
-        int bytes = generateRows(ROWS_PER_BLOCK, &rand_r_seed, cube, socket);
-        time(&endTime);
-        int seconds = difftime(endTime, startTime) + 1;
-        cout << "generated " << bytes /1024 / 1024/ seconds << "Mb/s (" << bytes << " bytes)" << std::endl;
+        int bytes = generateRows(ROWS_PER_BLOCK, &rand_r_seed, cube, sockets);
+
+        timespec ts_end;
+		clock_gettime(CLOCK_REALTIME, &ts_end); // Works on Linux
+		long ms = (ts_end.tv_sec - ts_start.tv_sec) * 1000.0f + ts_end.tv_nsec * 0.000001f - ts_start.tv_nsec * 0.000001f;
+		double MBps = (bytes * 0.000001) / (ms * 0.001);
+		std::cerr << "Sent " << bytes << " bytes in " << ms << " ms" << " (" << MBps << " MB/s)" << std::endl;
     }
 }
 
-void StartGenerating(int no_blocks, cube_info *cube, std::string ip, int port,
-                     int no_threads = 2) {
-
+void StartGenerating(int no_blocks, cube_info *cube, std::vector<socket_info*> sockets, int no_threads = 2) {
     if (!canGenerateFromCube(cube)) {
         std::cerr << "Cannot generate from cube definition." << endl;
         return;
     }
-    auto socket = makeSocket(port, ip, true);
-
-    srand(time(NULL));
 
     std::thread * genThreads = new thread [no_threads];
 
     for (int i = 0; i < no_threads; i++) {
-        genThreads[i] = std::thread(TGenerate, i, no_blocks, cube, socket);
+        genThreads[i] = std::thread(TGenerate, i, no_blocks, cube, sockets);
     }
 
     for (int i = 0; i < no_threads; i++) {
