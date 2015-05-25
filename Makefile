@@ -4,7 +4,7 @@ nocuda: compile_nocuda test_nocuda
 
 compile: compile_nocuda lib/librtcudacore.so bin/gpunode
 
-compile_nocuda: bin/send bin/server bin/row_generator lib/librtquery.so lib/librtdummycore.so
+compile_nocuda: bin/send bin/server bin/row-generator lib/librtquery.so lib/librtdummycore.so
 
 test: test_nocuda test_cudacore test_core_cuda
 
@@ -75,8 +75,8 @@ bin/send: util/* proto/* send/* .dirs3
 bin/server: util/* proto/* server/* .dirs3
 	$(CXX14) proto/proto.cpp server/server.cpp -o ./bin/server
 
-bin/row_generator: proto/* row-generator/* .dirs3
-	$(CXX14) -lrt proto/proto.cpp row-generator/RowGenerator.cpp -o ./bin/row_generator
+bin/row-generator: proto/* row-generator/* .dirs3
+	$(CXX14) -lrt -pthread proto/proto.cpp row-generator/RowGenerator.cpp -o ./bin/row-generator
 
 lib/librtquery.so: cubesql/* librtquery/* .dirs3
 	$(CXX14) -shared -fPIC librtquery/query.cpp cubesql/query.cpp cubesql/tokenizer.cpp cubesql/parser.cpp -o ./lib/librtquery.so.0
