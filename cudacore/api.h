@@ -2,6 +2,10 @@
 
 #include "../ir/IR.h"
 
+#define MEM_TO_FILL 0.4
+#define BLOCKS 32
+#define THREADS 32
+
 namespace CudaCore
 {
 	class RTCubeP;

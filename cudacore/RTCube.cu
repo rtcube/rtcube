@@ -2,6 +2,7 @@
 
 RTCube InitCube(float cardMemoryPartToFill, int dimensionsCount, int *dimensionsSizes, int measuresCount, int blocks, int threads)
 {
+
 	RTCube cube;
 	cube.DimensionsCount = dimensionsCount;
 	cube.MeasuresCount = measuresCount;

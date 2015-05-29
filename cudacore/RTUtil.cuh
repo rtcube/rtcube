@@ -3,6 +3,9 @@
 
 #include <thrust/device_vector.h>
 
+#include "api.h"
+#include "../ir/IR.h"
+
 void PrintVector(int dimCount, int *dimVals, int measCount, int *measVals);
 void PrintPack(int vecCount, int dimCount, int measCount, int **dims, int **meas);
 void GeneretVector(int dimCount, int *dimRanges, int measCount, int measMax, int **dimVals, int **measVals);
@@ -12,5 +15,7 @@ void PrintPackedPack(int vecCount, int dimCount, int *dims, int measCount, int *
 void PrepareDataForInsert(int vecCount, int dimCount, int **dims, int measCount, int **meas, thrust::device_ptr<int> *d_dimsPacked, thrust::device_ptr<int> *d_measPacked);
 
 void RunSample();
+
+void RunIntegrationSample();
 
 #endif /* RTUTIL_H_ */

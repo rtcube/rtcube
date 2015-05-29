@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include "RTCube.cuh"
+#include "RTUtil.cuh"
 
 void PrintVector(int dimCount, int *dimVals, int measCount, int *measVals)
 {
@@ -41,8 +42,6 @@ void GeneratePack(int vecCount, int dimCount, int *dimRanges, int measCount, int
 	for(int i = 0; i < vecCount; ++i)
 		GeneretVector(dimCount, dimRanges, measCount, measMax, &((*dims)[i]), &((*meas)[i]));
 }
-
-
 
 void FreePack(int vecCount, int ***dims, int ***meas)
 {
@@ -261,5 +260,116 @@ void RunSample()
 
 	//Przy zabijaniu node trzeba zwolnić kostkę
 	FreeCube(cube);
+}
+
+void RunIntegrationSample()
+{
+	printf("Integration sample ...\n\n");
+	
+	IR::CubeDef def {};
+
+	IR::Dim dim1;
+	dim1.range = 10000;
+	def.dims.push_back(dim1);
+
+	IR::Dim dim2;
+	dim2.range = 100;
+	def.dims.push_back(dim2);
+
+	IR::Dim dim3;
+	dim3.range = 500;
+	def.dims.push_back(dim3);
+
+	IR::Dim dim4;
+	dim4.range = 10;
+	def.dims.push_back(dim4);
+
+	IR::Dim dim5;
+	dim5.range = 500;
+	def.dims.push_back(dim5);
+
+	IR::Mea mea1;
+	mea1.type = IR::Mea::Float;
+	def.meas.push_back(mea1);
+
+	IR::Mea mea2;
+	mea2.type = IR::Mea::Float;
+	def.meas.push_back(mea2);
+
+	IR::Mea mea3;
+	mea1.type = IR::Mea::Float;
+	def.meas.push_back(mea3);
+
+	IR::Rows rows = IR::Rows(5, 3, 10);
+
+	for(int i = 0; i < 10; ++i)
+	{
+		for(int j = 0; j < 5; ++j)
+		{
+			rows.dims[i * 5 + j] = i + j;
+		}
+
+		for(int j = 0; j < 3; ++j)
+		{
+			IR::mea m;
+			m.f = i + j + 0.5;
+			rows.meas[i * 3 + j] = m;
+		}
+	}
+
+	IR::Query q(5, 3, 3);
+
+	q.selectDims[0] = 1;
+	q.selectDims[3] = 1;
+
+	//Tutaj pokazujemy jakie mają być limity w where
+	q.whereDimMode[0] = RTCUBE_WHERE_RANGE;	//d0 będzie brane z zakresu
+	q.whereDimMode[1] = RTCUBE_WHERE_SET;		//d1 będzie brane ze zbioru
+	q.whereDimMode[2] = RTCUBE_WHERE_SET;		//d2 będzie brane ze zbioru
+	q.whereDimMode[3] = RTCUBE_WHERE_MAXRANGE;	//d3 jest selectowane więc jeśli nie ma dla niego nic w where,
+													//to trzeba ustawić _MAXRANGE
+
+	//Tutaj dla każdego z wymiarów, dla którego mamy jakieś ograniczenie wpisujemy ile jest możliwych wartości
+	q.whereDimValuesCounts[0] = 20;	//ile wartości w zakresie
+	q.whereDimValuesCounts[1] = 3;	//ile wartości w ziorze
+	q.whereDimValuesCounts[2] = 3;	//ile wartości w zbiorze
+	q.whereDimValuesCounts[3] = 10;	//ile wszystkich wartości dla wymiaru
+
+	//Tutaj wpisujemy początki i końce zakresów
+	q.whereStartRange[0] = 0;
+	q.whereStartRange[3] = 0;
+
+	q.whereEndRange[0] = 19;
+	q.whereEndRange[3] = 10;
+
+	//Tutaj kolejno wpisujemy wszystkie zbiory wartości z where
+	q.whereDimVals = std::vector<int>(6);
+	q.whereDimVals[0] = 0;
+	q.whereDimVals[1] = 1;
+	q.whereDimVals[2] = 3;
+	q.whereDimVals[3] = 0;
+	q.whereDimVals[4] = 2;
+	q.whereDimVals[5] = 4;
+
+	//I teraz tutaj wpisujemy dla tych wymiarów, które mają wartości ze zbiorów, na którym indeksie w tablicy wyżej
+	//zaczyna się zbiór dla danego wymiaru
+	q.whereDimValsStart[1] = 0;
+	q.whereDimValsStart[2] = 3;
+
+	//Tutaj wpisujemy dla jakich miar chcemy wykonywać operacje
+	q.operationsMeasures[0] = 0;
+	q.operationsMeasures[1] = 2;
+	q.operationsMeasures[2] = 2;
+
+	//Tutaj jakie to mają być operacje
+	q.operationsTypes[0] = RTCUBE_OP_SUM;
+	q.operationsTypes[1] = RTCUBE_OP_CNT;
+	q.operationsTypes[2] = RTCUBE_OP_SUM;
+
+
+	CudaCore::RTCube cube(def);
+	cube.insert(rows);
+	IR::QueryResult result = cube.query(q);
+
 }
 
