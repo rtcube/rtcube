@@ -35,10 +35,10 @@ int main(int argc, const char* argv[]) {
         return 1;
     }
     if (argc == 4) {
-        try{
-        no_threads = std::stoi(argv[3]);
+        try {
+            no_threads = std::stoi(argv[3]);
         }
-        catch(const std::invalid_argument& ia){
+        catch(const std::invalid_argument& ia) {
             std::cerr << "Invalid number of threads option '" << argv[3] << "'" << std::endl;
         }
     }
@@ -57,21 +57,21 @@ int main(int argc, const char* argv[]) {
         }
 
         // i - status
-		if(line[0] == 'i'){
-			if (Generator::StatusRequest(sockets))
-				std::cout << std::endl << "Sent status request" << std::endl;
-			else
-				std::cout << std::endl << "Status request error" << std::endl;
-			continue;
-		}
-		// r - query test
-        if(line[0] == 'r'){
-			if (Generator::QueryTest(sockets))
-				std::cout << std::endl << "Sent query request" << std::endl;
-			else
-				std::cout << std::endl << "Query request error" << std::endl;
-			continue;
- 		}
+        if(line[0] == 'i') {
+            if (Generator::StatusRequest(sockets))
+                std::cout << std::endl << "Sent status request" << std::endl;
+            else
+                std::cout << std::endl << "Status request error" << std::endl;
+            continue;
+        }
+        // r - query test
+        if(line[0] == 'r') {
+            if (Generator::QueryTest(sockets))
+                std::cout << std::endl << "Sent query request" << std::endl;
+            else
+                std::cout << std::endl << "Query request error" << std::endl;
+            continue;
+        }
 
         // %d - Generate rows
         try {

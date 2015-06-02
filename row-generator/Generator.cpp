@@ -1,10 +1,4 @@
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <sys/stat.h>
-
 #include <vector>
-#include <list>
 #include <string.h>
 #include <iostream>
 #include <string>
@@ -36,7 +30,7 @@ socket_info * makeSocket(HostPort dest, bool test_connectivity = false) {
     ::memset(&sin6, 0, sizeof(sin6));
     sin6.sin6_family = AF_INET6;
     ::memcpy(&sin6.sin6_addr, dest.ip, 16);
-	sin6.sin6_port = dest.port;
+    sin6.sin6_port = dest.port;
 
     if ((fd = socket(PF_INET6, SOCK_DGRAM, 0)) < 0) {
         perror("Opening socket.");
@@ -70,7 +64,7 @@ inline int sendRow(socket_info * socket, string &row) {
     return bytes;
 }
 
-std::vector<socket_info*> LoadAddressesFile(std::string filename){
+std::vector<socket_info*> LoadAddressesFile(std::string filename) {
     std::vector<socket_info*> sockets;
 
     std::ifstream file(filename.c_str());
@@ -90,27 +84,27 @@ std::vector<socket_info*> LoadAddressesFile(std::string filename){
 }
 
 bool QueryTest(std::vector<socket_info*> sockets) {
-	auto v = proto::serialize("query");
-	int res;
-	for (socket_info* socket : sockets) {
+    auto v = proto::serialize("query");
+    int res;
+    for (socket_info* socket : sockets) {
         res = sendto(socket->fd, v.data(), v.size(), 0, (sockaddr *)&(socket->sin6), sizeof(sockaddr_in6));
-	if (res == -1){
-		return false;
-	}
+        if (res == -1) {
+            return false;
+        }
     }
     return true;
 }
 
 bool StatusRequest(std::vector<socket_info*> sockets) {
-	auto v = proto::serialize("status");
-	int res;
-	for (socket_info* socket : sockets) {
-		res = sendto(socket->fd, v.data(), v.size(), 0, (sockaddr *)&(socket->sin6), sizeof(sockaddr_in6));
-		if (res == -1){
-			return false;
-		}
+    auto v = proto::serialize("status");
+    int res;
+    for (socket_info* socket : sockets) {
+        res = sendto(socket->fd, v.data(), v.size(), 0, (sockaddr *)&(socket->sin6), sizeof(sockaddr_in6));
+        if (res == -1) {
+            return false;
+        }
     }
-	return true;
+    return true;
 }
 }
 
@@ -164,24 +158,24 @@ bool canGenerateFromCube(cube_info *cube) {
 // generates no_rows rows based on the given cube_info pointer,
 // then sends them in blocks of size smaller than BUFFER_SIZE (4096) over the sockets.
 int generateRows(int no_rows, unsigned int * rand_r_seed,  cube_info *cube, std::vector<socket_info*> sockets,
-  bool with_time = true) {
+                 bool with_time = true) {
 
     int time;
     int socket_index = 0;
     int sockets_size = sockets.size();
-	int rows_per_send = BUFFER_SIZE / cube->no_cols / (sizeof(int) + 1);
-	std::string row = "";
+    int rows_per_send = BUFFER_SIZE / cube->no_cols / (sizeof(int) + 1);
+    std::string row = "";
 
     int bytes = 0;
     for (int i = 0; i < no_rows; ++i) {
         time = i / ROWS_PER_TIMESTAMP;
         row += generateIntRow(time, rand_r_seed, cube,  with_time);
 
-	if ((i % rows_per_send) == 0){
-		socket_index = (socket_index + 1) % sockets.size();
-		bytes += sendRow(sockets[socket_index], row);
-		row = "";
-	}
+        if ((i % rows_per_send) == 0) {
+            socket_index = (socket_index + 1) % sockets.size();
+            bytes += sendRow(sockets[socket_index], row);
+            row = "";
+        }
     }
     return bytes;
 }
@@ -191,16 +185,16 @@ void TGenerate(int thread_nr, int no_blocks, cube_info *cube, std::vector<socket
     unsigned int rand_r_seed = (unsigned int) ((int) time(NULL)) * (thread_nr + 1);
     for(int i=0; i < no_blocks; ++i) {
         timespec ts_start;
-		clock_gettime(CLOCK_REALTIME, &ts_start); // Works on Linux
+        clock_gettime(CLOCK_REALTIME, &ts_start); // Works on Linux
 
         std::cout << "Thread[" << thread_nr << "] - generating data block no "<< i +1 << std::endl;
         int bytes = generateRows(ROWS_PER_BLOCK, &rand_r_seed, cube, sockets);
 
         timespec ts_end;
-		clock_gettime(CLOCK_REALTIME, &ts_end); // Works on Linux
-		long ms = (ts_end.tv_sec - ts_start.tv_sec) * 1000.0f + ts_end.tv_nsec * 0.000001f - ts_start.tv_nsec * 0.000001f;
-		double MBps = (bytes * 0.000001) / (ms * 0.001);
-		std::cerr << "Sent " << bytes << " bytes in " << ms << " ms" << " (" << MBps << " MB/s)" << std::endl;
+        clock_gettime(CLOCK_REALTIME, &ts_end); // Works on Linux
+        long ms = (ts_end.tv_sec - ts_start.tv_sec) * 1000.0f + ts_end.tv_nsec * 0.000001f - ts_start.tv_nsec * 0.000001f;
+        double MBps = (bytes * 0.000001) / (ms * 0.001);
+        std::cerr << "Sent " << bytes << " bytes in " << ms << " ms" << " (" << MBps << " MB/s)" << std::endl;
     }
 }
 
@@ -232,7 +226,7 @@ void parseIntLine(std::string line, std::vector<int> & vector) {
     int val;
 
     while (getline(ss, elem, ',')) {
-        try{
+        try {
             val = std::stoi(elem);
             vector.push_back(val);
         }
@@ -292,7 +286,7 @@ cube_info* LoadCubeFile(std::string filename) {
                 len = line.find_first_of(']') - str_index - 1;
                 val_substr = line.substr(str_index + 1, len);
 
-                try{
+                try {
                     val = std::stoi(val_substr);
                     cube->max_vals[i] = val - cube->min_vals[i];
                 }
