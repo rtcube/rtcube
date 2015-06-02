@@ -18,10 +18,11 @@
 
 #define ROWS_PER_BLOCK 1000000
 #define BUFFER_SIZE 4096
+#define ROWS_PER_TIMESTAMP 100
 
 using namespace std;
 
-// UDP
+// socket communication
 namespace Generator {
 struct socket_info {
     int fd;
@@ -115,6 +116,8 @@ bool StatusRequest(std::vector<socket_info*> sockets) {
 
 // Generation
 namespace Generator {
+
+// struct holding info about the cube's structure
 struct cube_info {
     int no_cols;
     bool * range_or_list;
@@ -123,6 +126,7 @@ struct cube_info {
     std::vector<int> * lists;
 };
 
+// generates a single column value given a cube_info struct pointer
 inline int getVal(int col_nr, unsigned int * rand_r_seed, cube_info * cube) {
     if (cube->range_or_list[col_nr]) {
         //range
@@ -138,7 +142,9 @@ inline int getVal(int col_nr, unsigned int * rand_r_seed, cube_info * cube) {
 inline std::string generateIntRow(int time, unsigned int * rand_r_seed, cube_info *cube, bool with_time = true) {
     int val;
     auto v = std::vector<proto::value> {};
-    if (with_time) v.emplace_back(time);
+
+    if (with_time)
+        v.emplace_back(time);
 
     for (int i = 0; i < cube->no_cols; ++i) {
         v.emplace_back(getVal(i, (unsigned int *)rand_r_seed,  cube));
@@ -149,23 +155,27 @@ inline std::string generateIntRow(int time, unsigned int * rand_r_seed, cube_inf
 
 bool canGenerateFromCube(cube_info *cube) {
     if (!cube->max_vals || !cube->min_vals || !cube->range_or_list) {
-        cerr << "Variables for random generation are not set" << endl;
+        std::cerr << "Variables for random generation are not set" << std::endl;
         return false;
     }
     return true;
 }
 
+// generates no_rows rows based on the given cube_info pointer,
+// then sends them in blocks of size smaller than BUFFER_SIZE (4096) over the sockets.
 int generateRows(int no_rows, unsigned int * rand_r_seed,  cube_info *cube, std::vector<socket_info*> sockets,
   bool with_time = true) {
 
+    int time;
     int socket_index = 0;
     int sockets_size = sockets.size();
 	int rows_per_send = BUFFER_SIZE / cube->no_cols / (sizeof(int) + 1);
 	std::string row = "";
-	
+
     int bytes = 0;
     for (int i = 0; i < no_rows; ++i) {
-        row += generateIntRow(i % 10, rand_r_seed, cube,  with_time);
+        time = i / ROWS_PER_TIMESTAMP;
+        row += generateIntRow(time, rand_r_seed, cube,  with_time);
 
 	if ((i % rows_per_send) == 0){
 		socket_index = (socket_index + 1) % sockets.size();
@@ -176,8 +186,9 @@ int generateRows(int no_rows, unsigned int * rand_r_seed,  cube_info *cube, std:
     return bytes;
 }
 
+// function to pass for a row generating thread
 void TGenerate(int thread_nr, int no_blocks, cube_info *cube, std::vector<socket_info*> sockets) {
-    unsigned int rand_r_seed = (unsigned int) thread_nr;
+    unsigned int rand_r_seed = (unsigned int) ((int) time(NULL)) * (thread_nr + 1);
     for(int i=0; i < no_blocks; ++i) {
         timespec ts_start;
 		clock_gettime(CLOCK_REALTIME, &ts_start); // Works on Linux
@@ -193,6 +204,8 @@ void TGenerate(int thread_nr, int no_blocks, cube_info *cube, std::vector<socket
     }
 }
 
+// Main function
+// Launches no_threads threads, each generating no_blocks * ROWS_PER_BLOCK (1000000) rows
 void StartGenerating(int no_blocks, cube_info *cube, std::vector<socket_info*> sockets, int no_threads = 2) {
     if (!canGenerateFromCube(cube)) {
         std::cerr << "Cannot generate from cube definition." << endl;
@@ -211,15 +224,26 @@ void StartGenerating(int no_blocks, cube_info *cube, std::vector<socket_info*> s
 }
 
 // cube definition parsing
+//
+// parses a line of comma separated integer values
 void parseIntLine(std::string line, std::vector<int> & vector) {
     std::string elem;
     std::stringstream ss(line);
+    int val;
 
     while (getline(ss, elem, ',')) {
-        vector.push_back(std::stoi(elem));
+        try{
+            val = std::stoi(elem);
+            vector.push_back(val);
+        }
+        catch(const std::invalid_argument& ia)
+        {
+            std::cerr << "Could not parse '" << elem << "' in line '" << line << std::endl;
+        }
     }
 }
 
+// returns a pointer to a cube_info struct, parsed from a file
 cube_info* LoadCubeFile(std::string filename) {
     std::ifstream file(filename.c_str());
     cube_info* cube = new cube_info();
@@ -229,7 +253,7 @@ cube_info* LoadCubeFile(std::string filename) {
 
     std::string line;
     int dim_count = 0, m_count = 0;
-    //count the number of dimensions and measures
+    // count the number of dimensions and measures
     std::getline(file, line);
     if (line[0] == '#') {
         while (std::getline(file, line) && line[0] != '#') {
@@ -239,17 +263,17 @@ cube_info* LoadCubeFile(std::string filename) {
             m_count++;
         }
     } else {
-        //file does not begin with '#'
+        // file does not begin with '#'
         return NULL;
     }
 
-    //init the arrays
+    // init the arrays
     int no_cols = dim_count + m_count;
     cube->no_cols = no_cols;
     cube->range_or_list = new bool[no_cols];
     cube->min_vals = new int [no_cols];
     cube->max_vals = new int [no_cols];
-    cube->lists = new vector<int>[no_cols];
+    cube->lists = new std::vector<int>[no_cols];
 
     //now lets read the data
     file.clear();
@@ -258,14 +282,26 @@ cube_info* LoadCubeFile(std::string filename) {
     int str_index, len, i = 0;
     while (std::getline(file, line)) {
         if (line[0] != '#') {
-            if ((cube->range_or_list[i] = line[0] == '[')) {
-                //range of values
+            if ((cube->range_or_list[i] = (line[0] == '['))) {
+                // range of values
+                int val;
+                std::string val_substr;
+
                 str_index = line.find_first_of(',');
                 cube->min_vals[i] = std::stoi(line.substr(1, str_index - 1));
                 len = line.find_first_of(']') - str_index - 1;
-                cube->max_vals[i] = std::stoi(line.substr(str_index + 1, len)) - cube->min_vals[i];
+                val_substr = line.substr(str_index + 1, len);
+
+                try{
+                    val = std::stoi(val_substr);
+                    cube->max_vals[i] = val - cube->min_vals[i];
+                }
+                catch(const std::invalid_argument& ia)
+                {
+                    std::cerr << "Could not parse '" << val_substr << "' in line '" << line << std::endl;
+                }
             } else {
-                //int values
+                // list of values
                 std::vector<int> list;
                 parseIntLine(line, list);
                 cube->lists[i] = list;

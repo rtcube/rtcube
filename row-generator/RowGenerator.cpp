@@ -11,8 +11,8 @@
 using namespace std;
 
 void usage() {
-    cerr << "USAGE: " << endl;
-    cerr << "row-generator ip:port cube_filename [no_threads]" << endl;
+    std::cerr << "USAGE: " << std::endl;
+    std::cerr << "row-generator addresses_filename cube_filename [no_threads]" << std::endl;
     exit(0);
 }
 
@@ -31,49 +31,59 @@ int main(int argc, const char* argv[]) {
 
     cube_filepath = argv[2];
     if (!(cube = Generator::LoadCubeFile(cube_filepath))) {
-        cerr << "Couldn't load cube file " << cube_filepath << endl;
+        std::cerr << "Couldn't load cube file " << cube_filepath << std::endl;
         return 1;
     }
     if (argc == 4) {
+        try{
         no_threads = std::stoi(argv[3]);
+        }
+        catch(const std::invalid_argument& ia){
+            std::cerr << "Invalid number of threads option '" << argv[3] << "'" << std::endl;
+        }
     }
 
     std::string line;
-    while(true) {
-        cout << "%d - generate %d blocks; i - status request; r - query test; Q|q - quit:" << endl;
-        getline(cin, line);
 
-        //Q|q - exit
+    while(true) {
+        // main loop
+
+        std::cout << "%d - generate %d blocks; i - status request; r - query test; Q|q - quit:" << std::endl;
+        std::getline(std::cin, line);
+
+        // Q|q - exit
         if(line[0] == 'q' || line[0] == 'Q') {
-            return 0;
+            break;
         }
 
         // i - status
 		if(line[0] == 'i'){
 			if (Generator::StatusRequest(sockets))
-				cout << endl << "Sent status request" << endl;
+				std::cout << std::endl << "Sent status request" << std::endl;
 			else
-				cout << endl << "Status request error" << endl;
+				std::cout << std::endl << "Status request error" << std::endl;
 			continue;
 		}
 		// r - query test
         if(line[0] == 'r'){
 			if (Generator::QueryTest(sockets))
-				cout << endl << "Sent query request" << endl;
+				std::cout << std::endl << "Sent query request" << std::endl;
 			else
-				cout << endl << "Query request error" << endl;
+				std::cout << std::endl << "Query request error" << std::endl;
 			continue;
  		}
 
-        //%d - Generate rows
+        // %d - Generate rows
         try {
-            no_blocks = stoi(line);
+            no_blocks = std::stoi(line);
+            Generator::StartGenerating(no_blocks,cube, sockets, no_threads);
         }
         catch (const std::invalid_argument& ia) {
             //std::cerr << "Invalid argument: " << ia.what() << '\n';
+            std::cerr << "Unknown option '" << line << "'" << std::endl;
             continue;
         }
-        Generator::StartGenerating(no_blocks,cube, sockets, no_threads);
     }
+
     return 0;
 }
