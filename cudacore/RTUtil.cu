@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "api.h"
 #include "RTCube.cuh"
 #include "RTUtil.cuh"
 
