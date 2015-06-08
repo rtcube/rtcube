@@ -93,7 +93,7 @@ bin/tests/test_parser: util/* cubesql/* .dirs3
 
 bin/tests/test_to_ir: util/* cubesql/* proto/* ir/* to_ir/* .dirs3
 	@echo $(ReportMakeAction)
-	$(CXX14) to_ir/test.cpp cubesql/tokenizer.cpp cubesql/query.cpp cubesql/parser.cpp to_ir/cubedef.cpp to_ir/rows.cpp -o ./bin/tests/test_to_ir
+	$(CXX14) to_ir/test.cpp cubesql/tokenizer.cpp cubesql/query.cpp cubesql/parser.cpp to_ir/cubedef.cpp to_ir/rows.cpp to_ir/query.cpp -o ./bin/tests/test_to_ir
 
 bin/tests/test_core_dummy: lib/librtdummycore.so ir/* dummycore/api.h test_core.cpp .dirs3
 	@echo $(ReportMakeAction)

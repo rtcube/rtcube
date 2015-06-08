@@ -39,6 +39,8 @@ namespace CubeSQL
 		T right;
 		Range() {}
 		Range(bool left_inclusive, bool right_inclusive, T left, T right): left_inclusive(left_inclusive), right_inclusive(right_inclusive), left(left), right(right) {}
+
+		auto index_of(T v) const -> int { return v - left - 1 + int(left_inclusive); }
 	};
 
 	template <typename T>
@@ -61,7 +63,7 @@ namespace CubeSQL
 		Set() {}
 		Set(std::initializer_list<T> v): values(v) {}
 
-		auto index_of(T v) -> int { auto p = std::find(values.begin(), values.end(), v); return p == values.end() ? -1 : p - values.begin(); }
+		auto index_of(T v) const -> int { auto p = std::find(values.begin(), values.end(), v); return p == values.end() ? -1 : p - values.begin(); }
 	};
 
 	template <typename T>
