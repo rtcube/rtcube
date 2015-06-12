@@ -48,29 +48,12 @@ int main(int argc, const char* argv[]) {
     while(true) {
         // main loop
 
-        std::cout << "%d - generate %d blocks; i - status request; r - query test; Q|q - quit:" << std::endl;
+        std::cout << "%d - generate %d blocks; Q|q - quit:" << std::endl;
         std::getline(std::cin, line);
 
         // Q|q - exit
         if(line[0] == 'q' || line[0] == 'Q') {
             break;
-        }
-
-        // i - status
-        if(line[0] == 'i') {
-            if (Generator::StatusRequest(sockets))
-                std::cout << std::endl << "Sent status request" << std::endl;
-            else
-                std::cout << std::endl << "Status request error" << std::endl;
-            continue;
-        }
-        // r - query test
-        if(line[0] == 'r') {
-            if (Generator::QueryTest(sockets))
-                std::cout << std::endl << "Sent query request" << std::endl;
-            else
-                std::cout << std::endl << "Query request error" << std::endl;
-            continue;
         }
 
         // %d - Generate rows

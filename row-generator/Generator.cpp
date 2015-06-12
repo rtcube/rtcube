@@ -82,30 +82,6 @@ std::vector<socket_info*> LoadAddressesFile(std::string filename) {
 
     return sockets;
 }
-
-bool QueryTest(std::vector<socket_info*> sockets) {
-    auto v = proto::serialize("query");
-    int res;
-    for (socket_info* socket : sockets) {
-        res = sendto(socket->fd, v.data(), v.size(), 0, (sockaddr *)&(socket->sin6), sizeof(sockaddr_in6));
-        if (res == -1) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool StatusRequest(std::vector<socket_info*> sockets) {
-    auto v = proto::serialize("status");
-    int res;
-    for (socket_info* socket : sockets) {
-        res = sendto(socket->fd, v.data(), v.size(), 0, (sockaddr *)&(socket->sin6), sizeof(sockaddr_in6));
-        if (res == -1) {
-            return false;
-        }
-    }
-    return true;
-}
 }
 
 // Generation
@@ -163,12 +139,15 @@ int generateRows(int no_rows, unsigned int * rand_r_seed,  cube_info *cube, std:
     int time;
     int socket_index = 0;
     int sockets_size = sockets.size();
-    int rows_per_send = BUFFER_SIZE / cube->no_cols / (sizeof(int) + 1);
+    int rows_per_send = BUFFER_SIZE / (cube->no_cols + 1) / (sizeof(int) + 1);
     std::string row = "";
+
+    timespec ts;
 
     int bytes = 0;
     for (int i = 0; i < no_rows; ++i) {
-        time = i / ROWS_PER_TIMESTAMP;
+        clock_gettime(CLOCK_REALTIME, &ts);
+        time = (int)(ts.tv_sec % 2000 * 1000.0f + ts.tv_nsec * 0.000001f);
         row += generateIntRow(time, rand_r_seed, cube,  with_time);
 
         if ((i % rows_per_send) == 0) {
