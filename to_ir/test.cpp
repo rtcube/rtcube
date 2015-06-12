@@ -119,13 +119,13 @@ WHERE pesel[10] in {1, 3, 5, 7, 9}
 	int f = 0;
 	int v = 0;
 
-	assert(query_ir.whereDimMode[f] == 3);
+	assert(query_ir.whereDimMode[f] == IR::Query::CondType::MaxRange);
 	assert(query_ir.whereDimValsStart[f] == v);
 	assert(query_ir.whereDimValuesCounts[f] == 1);
 	assert(query_ir.whereDimVals[v++] == 100001);
 	++f;
 
-	assert(query_ir.whereDimMode[f] == 3);
+	assert(query_ir.whereDimMode[f] == IR::Query::CondType::MaxRange);
 	assert(query_ir.whereDimValsStart[f] == v);
 	assert(query_ir.whereDimValuesCounts[f] == 1);
 	assert(query_ir.whereDimVals[v++] == 2015-1900+1);
@@ -134,13 +134,13 @@ WHERE pesel[10] in {1, 3, 5, 7, 9}
 	// commune[1-7], pesel[1-9]
 	for (; f < 1 + 1 + 7 + 9; ++f)
 	{
-		assert(query_ir.whereDimMode[f] == 0);
+		assert(query_ir.whereDimMode[f] == IR::Query::CondType::None);
 		assert(query_ir.whereDimValsStart[f] == 0);
 		assert(query_ir.whereDimValuesCounts[f] == 0);
 	}
 
 	// pesel[10]
-	assert(query_ir.whereDimMode[f] == 1);
+	assert(query_ir.whereDimMode[f] == IR::Query::CondType::Set);
 	assert(query_ir.whereDimValsStart[f] == v);
 	assert(query_ir.whereDimValuesCounts[f] == 5);
 	assert(query_ir.whereDimVals[v++] == 1);
@@ -151,7 +151,7 @@ WHERE pesel[10] in {1, 3, 5, 7, 9}
 	++f;
 
 	// pesel[11]
-	assert(query_ir.whereDimMode[f] == 0);
+	assert(query_ir.whereDimMode[f] == IR::Query::CondType::None);
 	assert(query_ir.whereDimValsStart[f] == 0);
 	assert(query_ir.whereDimValuesCounts[f] == 0);
 	++f;

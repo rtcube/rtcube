@@ -82,6 +82,7 @@ namespace IR
 
 	struct Query
 	{
+		#if __cplusplus >= 201103L
 		enum class OperationType : int
 		{
 			None = 0,
@@ -97,8 +98,12 @@ namespace IR
 			None = 0,
 			Set = 1,
 			Range = 2,
-			Maxrange = 3,
+			MaxRange = 3,
 		};
+		#else
+		typedef int OperationType;
+		typedef int CondType;
+		#endif
 
 		//Liczba wymiarów w kostce
 		int DimCount;
@@ -115,8 +120,7 @@ namespace IR
 		//WHERE_RANGE - wartość wymiaru z zakresu wartości (czyli IN <a, b> )
 		//WHERE_MAXRANGE - wartość wymiaru z zakresu <0, dMAX>  (dMax - maksymalna wartość tego wymiaru). To ustawiamy dla każdego wymiaru, który jest w select (ma selectDims[d] == 1), ale
 		//nie ma dla niego innych ograniczeń
-		std::vector<int> whereDimMode;
-
+		std::vector<CondType> whereDimMode;
 
 		//Tablica długości DimCount, która dla każdego wymiaru, na którym są ograniczenia, trzyma informację ile jest wartości w ograniczeniu (w zakresie lub zbiorze)
 		std::vector<int> whereDimValuesCounts;
@@ -151,8 +155,26 @@ namespace IR
 
 		//Czyli operationTypes[i] == OP_MAX i operationMeasures[i] == 2 znaczy, że i-ta operacja to MAX(m2)
 
-		Query(size_t dimCount, size_t measCount, size_t opCount) : DimCount(dimCount), MeasCount(measCount), selectDims(dimCount), whereDimMode(dimCount, WHERE_NONE), whereDimValuesCounts(dimCount, 0),
-				whereDimValsStart(dimCount, 0), whereStartRange(dimCount, 0), whereEndRange(dimCount, 0), operationsCount(opCount), operationsTypes(opCount, OperationType::None), operationsMeasures(opCount)
+		Query(size_t dimCount, size_t measCount, size_t opCount):
+			DimCount(dimCount),
+			MeasCount(measCount),
+			selectDims(dimCount),
+#if __cplusplus >= 201103L
+			whereDimMode(dimCount, CondType::None),
+#else
+			whereDimMode(dimCount, WHERE_NONE),
+#endif
+			whereDimValuesCounts(dimCount, 0),
+			whereDimValsStart(dimCount, 0),
+			whereStartRange(dimCount, 0),
+			whereEndRange(dimCount, 0),
+			operationsCount(opCount),
+#if __cplusplus >= 201103L
+			operationsTypes(opCount, OperationType::None),
+#else
+			operationsTypes(opCount, OP_NONE),
+#endif
+			operationsMeasures(opCount)
 		{}
 
 		Query(){}

@@ -127,7 +127,7 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 	ir.selectDims = std::vector<int>(ir.DimCount, 0);
 	select_fields(q.select, cols_by_name, ir);
 
-	ir.whereDimMode         = std::vector<int>(ir.DimCount, 0);
+	ir.whereDimMode         = std::vector<IR::Query::CondType>(ir.DimCount, IR::Query::CondType::None);
 	ir.whereDimValuesCounts = std::vector<int>(ir.DimCount, 0);
 	ir.whereDimValsStart    = std::vector<int>(ir.DimCount, 0);
 
@@ -152,7 +152,7 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 			{
 				if (ir.selectDims[i])
 				{
-					ir.whereDimMode[i] = 3;
+					ir.whereDimMode[i] = IR::Query::CondType::MaxRange;
 					ir.whereDimValsStart[i] = ir.whereDimVals.size();
 					ir.whereDimValuesCounts[i] = 1;
 					ir.whereDimVals.push_back(cube_ir.dims[i].range);
@@ -164,7 +164,7 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 
 			if (cond.op == CubeSQL::Condition::IN && cond.s)
 			{
-				ir.whereDimMode[index] = 1;
+				ir.whereDimMode[index] = IR::Query::CondType::Set;
 				auto copyValues = [&](const auto& set)
 				{
 					ir.whereDimValsStart[index] = ir.whereDimVals.size();
@@ -186,14 +186,14 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 			}
 			else if (cond.op == CubeSQL::Condition::E)
 			{
-				ir.whereDimMode[index] = 1;
+				ir.whereDimMode[index] = IR::Query::CondType::Set;
 				ir.whereDimValsStart[index] = ir.whereDimVals.size();
 				ir.whereDimValuesCounts[index] = 1;
 				ir.whereDimVals.push_back(toIRDimValue(dim, cond.a));
 			}
 			else if (cond.op == CubeSQL::Condition::IN && cond.r)
 			{
-				ir.whereDimMode[index] = 2;
+				ir.whereDimMode[index] = IR::Query::CondType::Range;
 				ir.whereDimValsStart[index] = ir.whereDimVals.size();
 				ir.whereDimValuesCounts[index] = 2;
 				auto copyValues = [&](const auto& range)
@@ -250,7 +250,7 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 				auto irleft = left ? toIRDimValue(dim, left) : 0;
 				auto irright = right ? toIRDimValue(dim, right) : cube_ir.dims[index].range;
 
-				ir.whereDimMode[index] = 2;
+				ir.whereDimMode[index] = IR::Query::CondType::Range;
 				ir.whereDimValsStart[index] = ir.whereDimVals.size();
 				ir.whereDimValuesCounts[index] = 2;
 				ir.whereDimVals.push_back(irleft);
