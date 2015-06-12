@@ -103,7 +103,7 @@ mea applications <0,100000>)");
 	auto cube_ir = toIR(cube);
 
 	auto query = CubeSQL::parse(R"(
-SELECT recv, yob
+SELECT recv, yob, SUM(signatures)
 WHERE pesel[10] in {1, 3, 5, 7, 9}
 )");
 	auto query_ir = toIR(cube, cube_ir, query);
@@ -155,6 +155,13 @@ WHERE pesel[10] in {1, 3, 5, 7, 9}
 	assert(query_ir.whereDimValsStart[f] == 0);
 	assert(query_ir.whereDimValuesCounts[f] == 0);
 	++f;
+
+	assert(query_ir.operationsCount == 1);
+	assert(query_ir.operationsMeasures.size() == query_ir.operationsCount);
+	assert(query_ir.operationsMeasures.size() == query_ir.operationsTypes.size());
+
+	assert(query_ir.operationsMeasures[0] == 0);
+	assert(query_ir.operationsTypes[0] == IR::Query::OperationType::Sum);
 }
 
 int main(int argc, char** argv)

@@ -82,6 +82,24 @@ namespace IR
 
 	struct Query
 	{
+		enum class OperationType : int
+		{
+			None = 0,
+			Sum = 1,
+			Max = 2,
+			Min = 3,
+			Avg = 4,
+			Cnt = 5
+		};
+
+		enum class CondType : int
+		{
+			None = 0,
+			Set = 1,
+			Range = 2,
+			Maxrange = 3,
+		};
+
 		//Liczba wymiarów w kostce
 		int DimCount;
 
@@ -126,7 +144,7 @@ namespace IR
 		int operationsCount;
 
 		//Tablica długości operationsCount. Dla każdej operacji wpisujemy tutaj jaka to ma być operacja
-		std::vector<int> operationsTypes;
+		std::vector<OperationType> operationsTypes;
 
 		//Tablica długości operationsCount. Dla każdej operacji wpisujemy tutaj na której mierze ma być wykonywana operacja
 		std::vector<int> operationsMeasures;
@@ -134,7 +152,7 @@ namespace IR
 		//Czyli operationTypes[i] == OP_MAX i operationMeasures[i] == 2 znaczy, że i-ta operacja to MAX(m2)
 
 		Query(size_t dimCount, size_t measCount, size_t opCount) : DimCount(dimCount), MeasCount(measCount), selectDims(dimCount), whereDimMode(dimCount, WHERE_NONE), whereDimValuesCounts(dimCount, 0),
-				whereDimValsStart(dimCount, 0), whereStartRange(dimCount, 0), whereEndRange(dimCount, 0), operationsCount(opCount), operationsTypes(opCount, OP_NONE), operationsMeasures(opCount)
+				whereDimValsStart(dimCount, 0), whereStartRange(dimCount, 0), whereEndRange(dimCount, 0), operationsCount(opCount), operationsTypes(opCount, OperationType::None), operationsMeasures(opCount)
 		{}
 
 		Query(){}

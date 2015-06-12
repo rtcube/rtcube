@@ -8,19 +8,24 @@ using CubeSQL::Int;
 using CubeSQL::Float;
 using CubeSQL::String;
 
-struct DimInfo
+struct ColInfo
 {
+	enum T { Dim, Mea } type;
 	int id;
 	int len;
 };
 
-void select_fields(const std::vector<CubeSQL::AnyExpr>& exprs, const std::unordered_map<std::string, DimInfo>& dims_by_name, IR::Query& ir)
+void select_fields(const std::vector<CubeSQL::AnyExpr>& exprs, const std::unordered_map<std::string, ColInfo>& cols_by_name, IR::Query& ir)
 {
 	for (auto& expr : exprs)
 	{
 		if (auto f = dynamic_cast<CubeSQL::FieldNameExpr*>(expr.get()))
 		{
-			auto dim = dims_by_name.at(f->name);
+			auto dim = cols_by_name.at(f->name);
+
+			if (dim.type != ColInfo::Dim)
+				continue;
+
 			if (f->index)
 				ir.selectDims[dim.id + *f->index - 1] = 1;
 			else
@@ -28,7 +33,7 @@ void select_fields(const std::vector<CubeSQL::AnyExpr>& exprs, const std::unorde
 					ir.selectDims[dim.id + i] = 1;
 		}
 		else if (auto o = dynamic_cast<CubeSQL::OperationExpr*>(expr.get()))
-			select_fields(o->args, dims_by_name, ir);
+			select_fields(o->args, cols_by_name, ir);
 	}
 }
 
@@ -80,6 +85,18 @@ auto toIRDimValue(const CubeSQL::ColDef& dim, const CubeSQL::AnyAtom& a) -> int
 	}
 }
 
+#include <iostream>
+auto toIRIndex(const ColInfo& col, const std::optional<int>& index_sql)
+{
+	if (col.len == 1)
+		return col.id;
+
+	if (!index_sql) // Whole array!
+		throw std::invalid_argument("toIRIndex");
+
+	return col.id + *index_sql - 1;
+}
+
 auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const CubeSQL::Select& q) -> IR::Query
 {
 	auto ir = IR::Query{};
@@ -87,18 +104,28 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 	ir.DimCount = cube_ir.dims.size();
 	ir.MeasCount = cube_ir.meas.size();
 
-	auto dims_by_name = std::unordered_map<std::string, DimInfo>{};
+	auto cols_by_name = std::unordered_map<std::string, ColInfo>{};
+
 	{
 		auto i = 0;
-		for (const auto& dim : cube_sql.dims)
+		for (const auto& col : cube_sql.dims)
 		{
-			dims_by_name[dim.name] = {i, dim.len};
-			i += dim.len;
+			cols_by_name[col.name] = {ColInfo::Dim, i, col.len};
+			i += col.len;
+		}
+	}
+
+	{
+		auto i = 0;
+		for (const auto& col : cube_sql.meas)
+		{
+			cols_by_name[col.name] = {ColInfo::Mea, i, col.len};
+			i += col.len;
 		}
 	}
 
 	ir.selectDims = std::vector<int>(ir.DimCount, 0);
-	select_fields(q.select, dims_by_name, ir);
+	select_fields(q.select, cols_by_name, ir);
 
 	ir.whereDimMode         = std::vector<int>(ir.DimCount, 0);
 	ir.whereDimValuesCounts = std::vector<int>(ir.DimCount, 0);
@@ -107,18 +134,11 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 	auto conds = std::vector<const CubeSQL::Condition*>(ir.DimCount, 0);
 	for (auto& cond : q.where)
 	{
-		auto& dim = dims_by_name[cond.field_name];
-		auto index = dim.id + [&](){
-			if (dim.len)
-			{
-				if (!cond.index) // Cannot make conditions over arrays.
-					throw std::invalid_argument("toIR");
-				return *cond.index - 1;
-			}
-			else
-				return 0;
-		}();
-		conds[index] = &cond;
+		auto& dim = cols_by_name[cond.field_name];
+		if (dim.type != ColInfo::Dim)
+			continue;
+
+		conds[toIRIndex(dim, cond.index)] = &cond;
 	}
 
 	auto i = 0;
@@ -241,6 +261,41 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 		}
 
 		i += dim.len;
+	}
+
+	ir.operationsCount = 0;
+
+	// Operations
+	for (auto& expr : q.select)
+	{
+		auto o = dynamic_cast<CubeSQL::OperationExpr*>(expr.get());
+		if (!o)
+			continue;
+
+		if (o->args.size() != 1)
+			continue;
+
+		auto& arg = o->args[0];
+		auto f = dynamic_cast<CubeSQL::FieldNameExpr*>(arg.get());
+		if (!o)
+			continue;
+
+		auto mea = cols_by_name.at(f->name);
+
+		if (mea.type != ColInfo::Mea)
+			continue;
+
+		auto op =
+			(o->name == "SUM") ? IR::Query::OperationType::Sum :
+			(o->name == "MAX") ? IR::Query::OperationType::Max :
+			(o->name == "MIN") ? IR::Query::OperationType::Min :
+			(o->name == "AVG") ? IR::Query::OperationType::Avg :
+			(o->name == "COUNT") ? IR::Query::OperationType::Cnt :
+			IR::Query::OperationType::None;
+
+		++ir.operationsCount;
+		ir.operationsMeasures.push_back(toIRIndex(mea, f->index));
+		ir.operationsTypes.push_back(op);
 	}
 
 	return ir;
