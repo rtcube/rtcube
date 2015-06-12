@@ -71,7 +71,7 @@ gcc:
 CXX=g++
 #Use this to switch to gcc downloaded with make gcc:
 #CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc
-CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc
+CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc -g
 
 NVCC=nvcc -arch=sm_20 --compiler-options -std=c++11 -U__GXX_EXPERIMENTAL_CXX0X__ -U__cplusplus -D__cplusplus=199711L
 
@@ -121,9 +121,9 @@ bin/row-generator: proto/* row-generator/* .dirs3
 	@echo $(ReportMakeAction)
 	$(CXX14) -lrt -pthread proto/proto.cpp row-generator/RowGenerator.cpp -o ./bin/row-generator
 
-bin/gpunode: lib/librtcudacore.so gpunode/* util/* proto/* server/* .dirs3
+bin/gpunode: lib/librtcudacore.so gpunode/* util/* proto/* server/* cubesql/* to_ir/* .dirs3
 	@echo $(ReportMakeAction)
-	$(CXX14) proto/proto.cpp gpunode/main.cpp gpunode/RTServer.cpp -Llib -lrtcudacore -o bin/gpunode
+	$(CXX14) proto/proto.cpp gpunode/main.cpp cubesql/parser.cpp cubesql/query.cpp cubesql/tokenizer.cpp to_ir/cubedef.cpp to_ir/query.cpp to_ir/rows.cpp gpunode/RTServer.cpp -Llib -lrtcudacore -o bin/gpunode
 
 # Make library recipes
 

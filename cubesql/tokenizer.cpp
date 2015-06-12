@@ -26,6 +26,7 @@ static bool is_space(char x)
 	switch (x)
 	{
 		case ' ':
+		case '\r':
 		case '\n':
 		case '\t':
 			return true;

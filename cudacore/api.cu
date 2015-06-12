@@ -11,7 +11,7 @@ namespace CudaCore
 	};
 
 	RTCube::RTCube(const IR::CubeDef& cubeDef)
-		: p(new RTCubeP())
+		: p(new RTCubeP()), def(cubeDef)
 	{
 		int *dimensionsSizes = (int*)malloc(sizeof(int)*cubeDef.dims.size());
 		for(int i = 0; i < cubeDef.dims.size(); ++i)

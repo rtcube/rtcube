@@ -25,5 +25,7 @@ namespace CudaCore
 
 		void insert(const IR::Rows&);
 		IR::QueryResult query(const IR::Query&);
+
+		IR::CubeDef def;
 	};
 }

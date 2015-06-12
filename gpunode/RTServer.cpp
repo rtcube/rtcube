@@ -6,7 +6,9 @@
 #include "../proto/proto.h"
 #include "../util/HostPort.h"
 
-#include "../cudacore/RTCubeApi.h"
+#include "../cudacore/api.h"
+#include "../cubesql/parser.h"
+#include "../to_ir/to_ir.h"
 #include "RTServer.h"
 
 using namespace std;
@@ -98,68 +100,74 @@ int accept_client(int sfd)
 	return nfd;
 }
 
-void communicateStream(int cfd)
+void communicateStream(CudaCore::RTCube &cube, const CubeSQL::CubeDef &def, int cfd)
 {
-	ssize_t size;
-	int32_t data[5];
-	if ((size = bulk_read(cfd, (char *)data, sizeof(int32_t[5]))) < 0) ERR("read:");
-	if (size == (int)sizeof(int32_t[5]))
-	{
-		//calculate(data);
-		if (bulk_write(cfd, (char *)data, sizeof(int32_t[5])) < 0 && errno != EPIPE) ERR("write:");
+	auto buf_size = 8092;
+	char buf[buf_size];
+	size_t read_size = 0;
+	size_t pos = 0;
+	do {
+		auto len = TEMP_FAILURE_RETRY(read(cfd, buf + read_size, buf_size - read_size));
+		if (len <= 0) return;
+		read_size += len;
+		for (; pos < read_size; ++pos)
+			if (buf[pos] == '\0')
+				break;
 	}
+	while (buf[pos] != '\0');
+
+	auto query = std::string{buf, pos};
+
+	auto query_sql = CubeSQL::parse(query);
+	auto query_ir = toIR(def, cube.def, query_sql);
+
+	cube.query(query_ir);
+
 	if (TEMP_FAILURE_RETRY(close(cfd)) < 0) ERR("close");
 }
 
-void communicateDgram(int fd)
+void communicateDgram(CudaCore::RTCube &cube, const CubeSQL::CubeDef &def, int fd)
 {
 	sockaddr addr;
 	socklen_t addr_len;
-	char buffer[2048];
+	char buffer[8192];
 	int len = 0;
-	if ((len = TEMP_FAILURE_RETRY(recvfrom(fd, buffer, 2048, 0, (::sockaddr*) &addr, &addr_len))) < 0) ERR("read:");
+	if ((len = TEMP_FAILURE_RETRY(recvfrom(fd, buffer, 8192, 0, (::sockaddr*) &addr, &addr_len))) < 0) ERR("read:");
 
 	auto msg = string{buffer, string::size_type(len)};
 	auto V = proto::unserialize(msg);
+	auto v_count = V.size();
+	auto r_len = def.dims.size() + def.meas.size();
+	auto r_count = v_count / r_len;
 
-	if (V[0] == "hello")
+	auto rows = std::vector<std::vector<proto::value>>{};
+	auto begin = V.begin();
+	auto end = V.begin();
+	for (auto r = 0; r < r_count; ++r)
 	{
-		std::cout << "Generator connected" << endl;
+		begin = end;
+		end = begin + r_len;
+		rows.push_back({begin, end});
 	}
-	else if (V[0] == "status")
+
+	if (DEBUG_INFO)
 	{
-		cubeStatus();
-	}
-	else if (V[0] == "query")
-	{
-		cubeQuery();
-	}
-	else
-	{
-		if (DEBUG_INFO)
+		std::cout << "Insert: ";
+		for (auto v : V)
 		{
-			std::cout << "Insert: ";
-			for (auto v : V)
+			try
 			{
-				try
-				{
-					std::cout << int(v) << " "; // cout is required, so compiler won't optimize int() away.
-				}
-				catch (std::domain_error&) {}
+				std::cout << int(v) << " "; // cout is required, so compiler won't optimize int() away.
 			}
-			std::cout << std::endl;
+			catch (std::domain_error&) {}
 		}
-
-		int size = V.size();
-		int *values = (int*)malloc(size * sizeof(int));
-		for (auto i = 0; i < size; ++i)
-			values[i] = V[i];
-		cubeInsert(values, size);
-		free(values);
+		std::cout << std::endl;
 	}
+
+	cube.insert(toIR(def, cube.def, rows));
 }
 
-void doServer(int fd_tcp, int fd_udp)
+void doServer(CudaCore::RTCube &cube, const CubeSQL::CubeDef &def, int fd_tcp, int fd_udp)
 {
 	sigset_t mask, oldmask;
 	sigemptyset(&mask);
@@ -178,10 +186,10 @@ void doServer(int fd_tcp, int fd_udp)
 			if (FD_ISSET(fd_tcp, &rfds))
 			{
 				cfd = accept_client(fd_tcp);
-				if (cfd >= 0) communicateStream(cfd);
+				if (cfd >= 0) communicateStream(cube, def, cfd);
 			}
 			if (FD_ISSET(fd_udp, &rfds)) {
-				communicateDgram(fd_udp);
+				communicateDgram(cube, def, fd_udp);
 			}
 		}
 		else
@@ -193,7 +201,7 @@ void doServer(int fd_tcp, int fd_udp)
 	sigprocmask (SIG_UNBLOCK, &mask, NULL);
 }
 
-int RunServers(char *hostaddr_tcp, char *hostaddr_udp)
+int RunServers(CudaCore::RTCube &cube, const CubeSQL::CubeDef &def, char *hostaddr_tcp, char *hostaddr_udp)
 {
 	int fd_tcp,fd_udp;
 	int new_flags;
@@ -206,7 +214,7 @@ int RunServers(char *hostaddr_tcp, char *hostaddr_udp)
 	fcntl(fd_tcp, F_SETFL, new_flags);
 
 	fd_udp = bind_inet_socket(hostaddr_udp, SOCK_DGRAM);
-	doServer(fd_tcp, fd_udp);
+	doServer(cube, def, fd_tcp, fd_udp);
 
 	if (TEMP_FAILURE_RETRY(close(fd_tcp)) < 0) ERR("close");
 	if (TEMP_FAILURE_RETRY(close(fd_udp)) < 0) ERR("close");

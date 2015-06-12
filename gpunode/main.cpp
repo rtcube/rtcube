@@ -1,6 +1,10 @@
 #include <iostream>
+#include <sstream>
+#include <fstream>
 
-#include "../cudacore/RTCubeApi.h"
+#include "../cudacore/api.h"
+#include "../cubesql/parser.h"
+#include "../to_ir/to_ir.h"
 #include "RTServer.h"
 
 int main(int argc, char** argv)
@@ -13,9 +17,17 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
-	initCube();
+	std::ifstream t("gpunode/cube");
+	t.exceptions(std::istream::failbit | std::istream::badbit);
+	std::stringstream buffer;
+	buffer << t.rdbuf();
 
-	int err = RunServers(argv[1], argv[2]);
+	auto sql = buffer.str();
+
+	auto cubeSQLDef = CubeSQL::parseCubeDef(sql);
+	auto cube = CudaCore::RTCube(toIR(cubeSQLDef));
+
+	int err = RunServers(cube, cubeSQLDef, argv[1], argv[2]);
 
 	//i wszystko :D
 	return err;
