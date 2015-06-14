@@ -139,9 +139,9 @@ lib/librtdummycore.so: dummycore/* ir/* .dirs3
 	rm -f ./lib/librtdummycore.so
 	ln -s librtdummycore.so.0 ./lib/librtdummycore.so
 
-lib/librtcudacore.so: obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTCubeApi.o obj/cudacore/RTUtil.o obj/cudacore/api.o .dirs3
+lib/librtcudacore.so: obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTUtil.o obj/cudacore/api.o .dirs3
 	@echo $(ReportMakeAction)
-	$(NVCC) -shared --compiler-options -fPIC obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTCubeApi.o obj/cudacore/RTUtil.o obj/cudacore/api.o -o ./lib/librtcudacore.so.0
+	$(NVCC) -shared --compiler-options -fPIC obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/RTUtil.o obj/cudacore/api.o -o ./lib/librtcudacore.so.0
 	rm -f ./lib/librtcudacore.so
 	ln -s librtcudacore.so.0 ./lib/librtcudacore.so
 
@@ -158,10 +158,6 @@ obj/cudacore/RTQuery.o: cudacore/*.cuh cudacore/RTQuery.cu .dirs3
 obj/cudacore/RTUtil.o: cudacore/*.cuh cudacore/RTUtil.cu .dirs3
 	@echo $(ReportMakeAction)
 	$(NVCC) -c --compiler-options -fPIC cudacore/RTUtil.cu -o obj/cudacore/RTUtil.o
-
-obj/cudacore/RTCubeApi.o: ir/*.h cudacore/*.h cudacore/*.cuh cudacore/RTCubeApi.cu .dirs3
-	@echo $(ReportMakeAction)
-	$(NVCC) -c --compiler-options -fPIC cudacore/RTCubeApi.cu -o obj/cudacore/RTCubeApi.o
 
 obj/cudacore/api.o: ir/*.h cudacore/*.h cudacore/*.cuh cudacore/api.cu .dirs3
 	@echo $(ReportMakeAction)
