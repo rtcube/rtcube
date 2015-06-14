@@ -2,30 +2,13 @@
 
 #include <cassert>
 
-namespace DummyCore
+void DummyCube::insert(const IR::Rows& rows)
 {
-	struct RTCubeP
-	{
-		IR::CubeDef def;
-	};
+	assert(rows.num_dims == def().dims.size());
+	assert(rows.num_meas == def().meas.size());
+}
 
-	RTCube::RTCube(const IR::CubeDef& d)
-		: p(new RTCubeP{d})
-	{}
-
-	RTCube::~RTCube()
-	{
-		delete p;
-	}
-
-	void RTCube::insert(const IR::Rows& rows)
-	{
-		assert(rows.num_dims == p->def.dims.size());
-		assert(rows.num_meas == p->def.meas.size());
-	}
-
-	IR::QueryResult RTCube::query(const IR::Query&)
-	{
-		return IR::QueryResult();
-	}
+IR::QueryResult DummyCube::query(const IR::Query& q)
+{
+	return IR::QueryResult(q);
 }

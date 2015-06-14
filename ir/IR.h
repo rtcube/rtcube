@@ -105,12 +105,6 @@ namespace IR
 		typedef int CondType;
 		#endif
 
-		//Liczba wymiarów w kostce
-		int DimCount;
-
-		//Liczba miar w kostce
-		int MeasCount;
-
 		//Które wymiary selectujemy - tablica długości DimCount, ma 1 dla każdego wymiaru, który jest w select
 		std::vector<int> selectDims;
 
@@ -144,9 +138,6 @@ namespace IR
 		std::vector<int> whereStartRange;
 		std::vector<int> whereEndRange;
 
-		//Liczba operacji na miarach w select (np. select d1 d2 SUM(m1) AVG(m1) MIN(m2) MAX(m3) FROM ...  - tutaj mamy 4 operacje na miarach
-		int operationsCount;
-
 		//Tablica długości operationsCount. Dla każdej operacji wpisujemy tutaj jaka to ma być operacja
 		std::vector<OperationType> operationsTypes;
 
@@ -155,9 +146,7 @@ namespace IR
 
 		//Czyli operationTypes[i] == OP_MAX i operationMeasures[i] == 2 znaczy, że i-ta operacja to MAX(m2)
 
-		Query(size_t dimCount, size_t measCount, size_t opCount):
-			DimCount(dimCount),
-			MeasCount(measCount),
+		Query(size_t dimCount = 0):
 			selectDims(dimCount),
 #if __cplusplus >= 201103L
 			whereDimMode(dimCount, CondType::None),
@@ -167,20 +156,10 @@ namespace IR
 			whereDimValuesCounts(dimCount, 0),
 			whereDimValsStart(dimCount, 0),
 			whereStartRange(dimCount, 0),
-			whereEndRange(dimCount, 0),
-			operationsCount(opCount),
-#if __cplusplus >= 201103L
-			operationsTypes(opCount, OperationType::None),
-#else
-			operationsTypes(opCount, OP_NONE),
-#endif
-			operationsMeasures(opCount)
+			whereEndRange(dimCount, 0)
 		{}
-
-		Query(){}
-
-
 	};
+
 	struct QueryResult
 	{
 		IR::Query query;
@@ -197,14 +176,12 @@ namespace IR
 		//Wielowymiarowa tablica spłaszczona do jednowymiarowej. Zawiera kolejne linie wyniku. Jak się poruszać po tym -> GetQuerryResultString w RTQuery.cu
 		std::vector<int> resultMeas;
 
-		QueryResult(Query q)
+		QueryResult(Query q): query(q)
 		{
-			query = q;
-
-			selectDimSizes = std::vector<int>(q.DimCount);
+			selectDimSizes = std::vector<int>(q.selectDims.size());
 
 			int currentSize = 1;
-			for (int i = q.DimCount - 1; i >= 0; --i)
+			for (int i = q.selectDims.size() - 1; i >= 0; --i)
 			{
 				if (q.selectDims[i] != 0)
 				{
@@ -214,11 +191,8 @@ namespace IR
 			}
 
 			resultsCount = currentSize;
-			measPerResult = q.operationsCount;
+			measPerResult = q.operationsMeasures.size();
 			resultMeas = std::vector<int>(resultsCount * measPerResult, 0);
 		}
-
-		QueryResult(){}
-
 	};
 }

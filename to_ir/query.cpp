@@ -99,10 +99,7 @@ auto toIRIndex(const ColInfo& col, const std::optional<int>& index_sql)
 
 auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const CubeSQL::Select& q) -> IR::Query
 {
-	auto ir = IR::Query{};
-
-	ir.DimCount = cube_ir.dims.size();
-	ir.MeasCount = cube_ir.meas.size();
+	auto ir = IR::Query{cube_ir.dims.size()};
 
 	auto cols_by_name = std::unordered_map<std::string, ColInfo>{};
 
@@ -124,14 +121,9 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 		}
 	}
 
-	ir.selectDims = std::vector<int>(ir.DimCount, 0);
 	select_fields(q.select, cols_by_name, ir);
 
-	ir.whereDimMode         = std::vector<IR::Query::CondType>(ir.DimCount, IR::Query::CondType::None);
-	ir.whereDimValuesCounts = std::vector<int>(ir.DimCount, 0);
-	ir.whereDimValsStart    = std::vector<int>(ir.DimCount, 0);
-
-	auto conds = std::vector<const CubeSQL::Condition*>(ir.DimCount, 0);
+	auto conds = std::vector<const CubeSQL::Condition*>(cube_ir.dims.size(), 0);
 	for (auto& cond : q.where)
 	{
 		auto& dim = cols_by_name[cond.field_name];
@@ -263,8 +255,6 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 		i += dim.len;
 	}
 
-	ir.operationsCount = 0;
-
 	// Operations
 	for (auto& expr : q.select)
 	{
@@ -293,7 +283,6 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 			(o->name == "COUNT") ? IR::Query::OperationType::Cnt :
 			IR::Query::OperationType::None;
 
-		++ir.operationsCount;
 		ir.operationsMeasures.push_back(toIRIndex(mea, f->index));
 		ir.operationsTypes.push_back(op);
 	}

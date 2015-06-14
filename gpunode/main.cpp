@@ -2,7 +2,7 @@
 #include <sstream>
 #include <fstream>
 
-#include "../cudacore/api.h"
+#include "../ir/core.h"
 #include "../cubesql/parser.h"
 #include "../to_ir/to_ir.h"
 #include "RTServer.h"
@@ -11,9 +11,9 @@ int main(int argc, char** argv)
 {
 	srand(time(NULL));
 
-	if (argc < 3)
+	if (argc < 4)
 	{
-		std::cerr << "Usage: " << argv[0] << " tcp_host:port udp_host:port" << std::endl;
+		std::cerr << "Usage: " << argv[0] << " core_type(dummy/cuda) tcp_host:port udp_host:port" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -24,10 +24,12 @@ int main(int argc, char** argv)
 
 	auto sql = buffer.str();
 
-	auto cubeSQLDef = CubeSQL::parseCubeDef(sql);
-	auto cube = CudaCore::RTCube(toIR(cubeSQLDef));
+	auto core = IR::Core{argv[1]};
 
-	int err = RunServers(cube, cubeSQLDef, argv[1], argv[2]);
+	auto cubeSQLDef = CubeSQL::parseCubeDef(sql);
+	auto cube = core.make_cube(toIR(cubeSQLDef));
+
+	int err = RunServers(cube, cubeSQLDef, argv[2], argv[3]);
 
 	//i wszystko :D
 	return err;

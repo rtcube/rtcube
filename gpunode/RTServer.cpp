@@ -6,7 +6,7 @@
 #include "../proto/proto.h"
 #include "../util/HostPort.h"
 
-#include "../cudacore/api.h"
+#include "../ir/core.h"
 #include "../cubesql/parser.h"
 #include "../to_ir/to_ir.h"
 #include "RTServer.h"
@@ -100,7 +100,7 @@ int accept_client(int sfd)
 	return nfd;
 }
 
-void communicateStream(CudaCore::RTCube &cube, const CubeSQL::CubeDef &def, int cfd)
+void communicateStream(IR::Cube &cube, const CubeSQL::CubeDef &def, int cfd)
 {
 	auto buf_size = 8092;
 	char buf[buf_size];
@@ -119,14 +119,14 @@ void communicateStream(CudaCore::RTCube &cube, const CubeSQL::CubeDef &def, int 
 	auto query = std::string{buf, pos};
 
 	auto query_sql = CubeSQL::parse(query);
-	auto query_ir = toIR(def, cube.def, query_sql);
+	auto query_ir = toIR(def, cube.def(), query_sql);
 
 	cube.query(query_ir);
 
 	if (TEMP_FAILURE_RETRY(close(cfd)) < 0) ERR("close");
 }
 
-void communicateDgram(CudaCore::RTCube &cube, const CubeSQL::CubeDef &def, int fd)
+void communicateDgram(IR::Cube &cube, const CubeSQL::CubeDef &def, int fd)
 {
 	sockaddr addr;
 	socklen_t addr_len;
@@ -164,10 +164,10 @@ void communicateDgram(CudaCore::RTCube &cube, const CubeSQL::CubeDef &def, int f
 		std::cout << std::endl;
 	}
 
-	cube.insert(toIR(def, cube.def, rows));
+	cube.insert(toIR(def, cube.def(), rows));
 }
 
-void doServer(CudaCore::RTCube &cube, const CubeSQL::CubeDef &def, int fd_tcp, int fd_udp)
+void doServer(IR::Cube &cube, const CubeSQL::CubeDef &def, int fd_tcp, int fd_udp)
 {
 	sigset_t mask, oldmask;
 	sigemptyset(&mask);
@@ -201,7 +201,7 @@ void doServer(CudaCore::RTCube &cube, const CubeSQL::CubeDef &def, int fd_tcp, i
 	sigprocmask (SIG_UNBLOCK, &mask, NULL);
 }
 
-int RunServers(CudaCore::RTCube &cube, const CubeSQL::CubeDef &def, char *hostaddr_tcp, char *hostaddr_udp)
+int RunServers(IR::Cube &cube, const CubeSQL::CubeDef &def, char *hostaddr_tcp, char *hostaddr_udp)
 {
 	int fd_tcp,fd_udp;
 	int new_flags;

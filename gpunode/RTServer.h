@@ -1,9 +1,6 @@
-#ifndef RTSERVER_H_
-#define RTSERVER_H_
+#pragma once
 
-#include "../cudacore/api.h"
-#include "../cubesql/cubedef.h"
+namespace IR { class Cube; }
+namespace CubeSQL { class CubeDef; }
 
-int RunServers(CudaCore::RTCube &cube, const CubeSQL::CubeDef &def, char *hostaddr_tcp, char *hostaddr_udp);
-
-#endif /* RTSERVER_H_ */
+int RunServers(IR::Cube &cube, const CubeSQL::CubeDef &def, char *hostaddr_tcp, char *hostaddr_udp);

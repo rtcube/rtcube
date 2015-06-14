@@ -1,25 +1,20 @@
 #pragma once
 
-#include "../ir/IR.h"
+#include "../ir/coreimpl.h"
 
-namespace DummyCore
+class DummyCube final: public IR::CubeImpl
 {
-	class RTCubeP;
-	class RTCube
-	{
-		RTCubeP* p;
+public:
+	DummyCube(const IR::CubeDef& def): CubeImpl(def) {}
 
-		RTCube(const RTCube&); // = delete
+	void insert(const IR::Rows&) override;
+	IR::QueryResult query(const IR::Query&) override;
+};
 
-	public:
-		RTCube(const IR::CubeDef&);
-		~RTCube();
+class DummyCore final: public IR::CoreImpl
+{
+public:
+	DummyCube* make_cube(const IR::CubeDef& def) override { return new DummyCube(def); }
+};
 
-#if __cplusplus >= 201103L
-		RTCube(RTCube&& o): p(o.p) {o.p = 0;}
-#endif
-
-		void insert(const IR::Rows&);
-		IR::QueryResult query(const IR::Query&);
-	};
-}
+extern "C" DummyCore* init_core() { return new DummyCore(); }

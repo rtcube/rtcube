@@ -108,8 +108,7 @@ WHERE pesel[10] in {1, 3, 5, 7, 9}
 )");
 	auto query_ir = toIR(cube, cube_ir, query);
 
-	assert(query_ir.DimCount == cube_ir.dims.size());
-	assert(query_ir.MeasCount == cube_ir.meas.size());
+	assert(query_ir.selectDims.size() == cube_ir.dims.size());
 
 	assert(query_ir.selectDims[0] == 1);
 	assert(query_ir.selectDims[1] == 1);
@@ -156,8 +155,7 @@ WHERE pesel[10] in {1, 3, 5, 7, 9}
 	assert(query_ir.whereDimValuesCounts[f] == 0);
 	++f;
 
-	assert(query_ir.operationsCount == 1);
-	assert(query_ir.operationsMeasures.size() == query_ir.operationsCount);
+	assert(query_ir.operationsMeasures.size() == 1);
 	assert(query_ir.operationsMeasures.size() == query_ir.operationsTypes.size());
 
 	assert(query_ir.operationsMeasures[0] == 0);

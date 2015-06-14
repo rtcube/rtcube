@@ -3,4 +3,5 @@ lib
 obj
 .dirs*
 gcc
+gdb
 frankenfile
