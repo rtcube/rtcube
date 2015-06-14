@@ -21,7 +21,16 @@ void select_fields(const std::vector<CubeSQL::AnyExpr>& exprs, const std::unorde
 	{
 		if (auto f = dynamic_cast<CubeSQL::FieldNameExpr*>(expr.get()))
 		{
-			auto dim = cols_by_name.at(f->name);
+			auto dim = [&](){
+				try
+				{
+					return cols_by_name.at(f->name);
+				}
+				catch (std::out_of_range&)
+				{
+					throw std::invalid_argument("toIR: Unknown column: " + f->name);
+				}
+			}();
 
 			if (dim.type != ColInfo::Dim)
 				continue;
@@ -145,9 +154,9 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 				if (ir.selectDims[i])
 				{
 					ir.whereDimMode[i] = IR::Query::CondType::MaxRange;
-					ir.whereDimValsStart[i] = ir.whereDimVals.size();
-					ir.whereDimValuesCounts[i] = 1;
-					ir.whereDimVals.push_back(cube_ir.dims[i].range);
+					ir.whereStartRange[index] = 0;
+					ir.whereEndRange[index] = cube_ir.dims[index].range;
+					ir.whereDimValuesCounts[index] = ir.whereEndRange[index] - ir.whereStartRange[index];
 				}
 				continue;
 			}
@@ -186,12 +195,10 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 			else if (cond.op == CubeSQL::Condition::IN && cond.r)
 			{
 				ir.whereDimMode[index] = IR::Query::CondType::Range;
-				ir.whereDimValsStart[index] = ir.whereDimVals.size();
-				ir.whereDimValuesCounts[index] = 2;
 				auto copyValues = [&](const auto& range)
 				{
-					ir.whereDimVals.push_back(toIRDimValue(dim, range.left) + (range.left_inclusive ? 0 : 1));
-					ir.whereDimVals.push_back(toIRDimValue(dim, range.right) - (range.right_inclusive ? 0 : 1));
+					ir.whereStartRange[index] = toIRDimValue(dim, range.left) + (range.left_inclusive ? 0 : 1);
+					ir.whereEndRange[index] = toIRDimValue(dim, range.right) - (range.right_inclusive ? 0 : 1) + 1;
 				};
 				switch (cond.s.type)
 				{
@@ -204,6 +211,7 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 					case CubeSQL::Type::String:
 						copyValues(cond.r.s); break;
 				};
+				ir.whereDimValuesCounts[index] = ir.whereEndRange[index] - ir.whereStartRange[index];
 			}
 			else if (cond.op == CubeSQL::Condition::LT || cond.op == CubeSQL::Condition::GT || cond.op == CubeSQL::Condition::LTE || cond.op == CubeSQL::Condition::GTE)
 			{
@@ -239,14 +247,10 @@ auto toIR(const CubeSQL::CubeDef& cube_sql, const IR::CubeDef& cube_ir, const Cu
 					};
 				}
 
-				auto irleft = left ? toIRDimValue(dim, left) : 0;
-				auto irright = right ? toIRDimValue(dim, right) : cube_ir.dims[index].range;
-
 				ir.whereDimMode[index] = IR::Query::CondType::Range;
-				ir.whereDimValsStart[index] = ir.whereDimVals.size();
-				ir.whereDimValuesCounts[index] = 2;
-				ir.whereDimVals.push_back(irleft);
-				ir.whereDimVals.push_back(irright);
+				ir.whereStartRange[index] = left ? toIRDimValue(dim, left) : 0;
+				ir.whereEndRange[index] = right ? toIRDimValue(dim, right) + 1 : cube_ir.dims[index].range;
+				ir.whereDimValuesCounts[index] = ir.whereEndRange[index] - ir.whereStartRange[index];
 			}
 			else
 				throw std::invalid_argument("toIR");

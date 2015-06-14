@@ -11,14 +11,14 @@ using namespace std;
 void testCubeDef()
 {
 	auto cube = CubeSQL::parseCubeDef(R"(
-dim recv TIME,
+dim recv TIME;
 
-dim yob <1900,2015>,
-dim commune CHAR[7],
-dim pesel <0,9>[11],
+dim yob <1900,2015>;
+dim commune CHAR[7];
+dim pesel <0,9>[11];
 
-mea signatures <0,1000000>,
-mea applications <0,100000>)");
+mea signatures <0,1000000>;
+mea applications <0,100000>.)");
 
 	auto ir = toIR(cube);
 	assert(ir.dims.size() == 1 + 1 + 7 + 11);
@@ -38,14 +38,14 @@ mea applications <0,100000>)");
 void testRows()
 {
 	auto cube = CubeSQL::parseCubeDef(R"(
-dim recv TIME,
+dim recv TIME;
 
-dim yob <1900,2015>,
-dim commune CHAR[7],
-dim pesel <0,9>[11],
+dim yob <1900,2015>;
+dim commune CHAR[7];
+dim pesel <0,9>[11];
 
-mea signatures <0,1000000>,
-mea applications <0,100000>)");
+mea signatures <0,1000000>;
+mea applications <0,100000>.)");
 	auto cube_ir = toIR(cube);
 
 	auto data = std::vector<proto::value>{
@@ -92,19 +92,19 @@ mea applications <0,100000>)");
 void testQuery()
 {
 	auto cube = CubeSQL::parseCubeDef(R"(
-dim recv <0,100000>,
+dim recv <0,100000>;
 
-dim yob <1900,2015>,
-dim commune CHAR[7],
-dim pesel <0,9>[11],
+dim yob <1900,2015>;
+dim commune CHAR[7];
+dim pesel <0,9>[11];
 
-mea signatures <0,1000000>,
-mea applications <0,100000>)");
+mea signatures <0,1000000>;
+mea applications <0,100000>.)");
 	auto cube_ir = toIR(cube);
 
 	auto query = CubeSQL::parse(R"(
 SELECT recv, yob, SUM(signatures)
-WHERE pesel[10] in {1, 3, 5, 7, 9}
+WHERE yob > 2000 AND pesel[10] in {1, 3, 5, 7, 9}
 )");
 	auto query_ir = toIR(cube, cube_ir, query);
 
@@ -119,23 +119,22 @@ WHERE pesel[10] in {1, 3, 5, 7, 9}
 	int v = 0;
 
 	assert(query_ir.whereDimMode[f] == IR::Query::CondType::MaxRange);
-	assert(query_ir.whereDimValsStart[f] == v);
-	assert(query_ir.whereDimValuesCounts[f] == 1);
-	assert(query_ir.whereDimVals[v++] == 100001);
+	assert(query_ir.whereStartRange[f] == 0);
+	assert(query_ir.whereEndRange[f] == 100001);
+	assert(query_ir.whereDimValuesCounts[f] == 100001);
 	++f;
 
-	assert(query_ir.whereDimMode[f] == IR::Query::CondType::MaxRange);
-	assert(query_ir.whereDimValsStart[f] == v);
-	assert(query_ir.whereDimValuesCounts[f] == 1);
-	assert(query_ir.whereDimVals[v++] == 2015-1900+1);
+	assert(query_ir.whereDimMode[f] == IR::Query::CondType::Range);
+	assert(query_ir.whereStartRange[f] == 2001-1900);
+	assert(query_ir.whereEndRange[f] == 2015-1900+1);
+	assert(query_ir.whereDimValuesCounts[f] == 2015-1900+1 - (2001-1900));
+	
 	++f;
 
 	// commune[1-7], pesel[1-9]
 	for (; f < 1 + 1 + 7 + 9; ++f)
 	{
 		assert(query_ir.whereDimMode[f] == IR::Query::CondType::None);
-		assert(query_ir.whereDimValsStart[f] == 0);
-		assert(query_ir.whereDimValuesCounts[f] == 0);
 	}
 
 	// pesel[10]
@@ -151,8 +150,6 @@ WHERE pesel[10] in {1, 3, 5, 7, 9}
 
 	// pesel[11]
 	assert(query_ir.whereDimMode[f] == IR::Query::CondType::None);
-	assert(query_ir.whereDimValsStart[f] == 0);
-	assert(query_ir.whereDimValuesCounts[f] == 0);
 	++f;
 
 	assert(query_ir.operationsMeasures.size() == 1);

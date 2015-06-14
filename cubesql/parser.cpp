@@ -39,11 +39,12 @@ struct token_stream
 		++i;
 	}
 
-	auto try_match(const char* code)
+	auto try_match(const char* code) -> bool
 	{
 		if (is_end() || !iequals(tokens[i].code, code))
 			return false;
 		++i;
+		return true;
 	}
 
 	auto is(const char* code)
@@ -371,17 +372,20 @@ auto parseCubeDef(const std::vector<token>& data) -> CubeDef
 	{
 		def.dims.push_back(readColDef(t));
 
-		if (!t.is_end())
-			t.match(",");
+		if (!t.is("."))
+			t.match(";");
 	}
 
 	while (t.try_match("MEA") || t.try_match("MEASURE"))
 	{
 		def.meas.push_back(readColDef(t));
 
-		if (!t.is_end())
-			t.match(",");
+		if (!t.is("."))
+			t.match(";");
 	}
+
+	t.match(".");
+	t.match_end();
 
 	return def;
 }

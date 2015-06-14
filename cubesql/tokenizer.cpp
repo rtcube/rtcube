@@ -16,6 +16,8 @@ static bool is_special_char(char x)
 		case '[':
 		case ']':
 		case ',':
+		case ';':
+		case '.':
 			return true;
 	}
 	return false;

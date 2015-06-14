@@ -85,15 +85,15 @@ LIMIT
 void testCubeDef()
 {
 	auto cube = CubeSQL::parseCubeDef(R"(
-DIM recv TIME,
+DIM recv TIME;
 
-DIM yob <1900,2015>,
-DIM commune CHAR[7],
-DIM locality text,
-DIM pesel CHAR[11],
+DIM yob <1900,2015>;
+DIM commune CHAR[7];
+DIM locality text;
+DIM pesel CHAR[11];
 
-MEA signatures <0,1000000>,
-MEA applications <0,100000>)");
+MEA signatures <0,1000000>;
+MEA applications <0,100000>.)");
 
 	assert(cube.dims.size() == 5);
 	assert(cube.meas.size() == 2);
