@@ -7,12 +7,12 @@
 
 namespace IR
 {
-	class Cube
+	class DB
 	{
 		std::unique_ptr<IR::CubeImpl> _cube;
 
 	public:
-		Cube(std::unique_ptr<IR::CubeImpl> cube): _cube{std::move(cube)} {}
+		DB(std::unique_ptr<IR::CubeImpl> cube): _cube{std::move(cube)} {}
 
 		auto def() -> const IR::CubeDef& {return _cube->def();}
 
@@ -29,6 +29,6 @@ namespace IR
 
 		Core(const std::string& type): _core{IR::loadCoreImpl(type)} {}
 
-		auto make_cube(const IR::CubeDef& def) -> Cube {return Cube{std::unique_ptr<IR::CubeImpl>{_core->make_cube(def)}};}
+		auto make_db(const IR::CubeDef& def) -> DB {return DB{std::unique_ptr<IR::CubeImpl>{_core->make_cube(def)}};}
 	};
 }

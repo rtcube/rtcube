@@ -100,7 +100,7 @@ int accept_client(int sfd)
 	return nfd;
 }
 
-void communicateStream(IR::Cube &cube, const CubeSQL::CubeDef &def, int cfd)
+void communicateStream(IR::DB &cube, const CubeSQL::CubeDef &def, int cfd)
 {
 	auto buf_size = 8092;
 	char buf[buf_size];
@@ -126,7 +126,7 @@ void communicateStream(IR::Cube &cube, const CubeSQL::CubeDef &def, int cfd)
 	if (TEMP_FAILURE_RETRY(close(cfd)) < 0) ERR("close");
 }
 
-void communicateDgram(IR::Cube &cube, const CubeSQL::CubeDef &def, int fd)
+void communicateDgram(IR::DB &cube, const CubeSQL::CubeDef &def, int fd)
 {
 	sockaddr addr;
 	socklen_t addr_len;
@@ -167,7 +167,7 @@ void communicateDgram(IR::Cube &cube, const CubeSQL::CubeDef &def, int fd)
 	cube.insert(toIR(def, cube.def(), rows));
 }
 
-void doServer(IR::Cube &cube, const CubeSQL::CubeDef &def, int fd_tcp, int fd_udp)
+void doServer(IR::DB &cube, const CubeSQL::CubeDef &def, int fd_tcp, int fd_udp)
 {
 	sigset_t mask, oldmask;
 	sigemptyset(&mask);
@@ -201,7 +201,7 @@ void doServer(IR::Cube &cube, const CubeSQL::CubeDef &def, int fd_tcp, int fd_ud
 	sigprocmask (SIG_UNBLOCK, &mask, NULL);
 }
 
-int RunServers(IR::Cube &cube, const CubeSQL::CubeDef &def, char *hostaddr_tcp, char *hostaddr_udp)
+int RunServers(IR::DB &cube, const CubeSQL::CubeDef &def, char *hostaddr_tcp, char *hostaddr_udp)
 {
 	int fd_tcp,fd_udp;
 	int new_flags;

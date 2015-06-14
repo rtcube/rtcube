@@ -17,9 +17,9 @@ void simpleTest(Core& core)
 	rows[0].dims()[1] = 7;
 	rows[0].meas()[0].i = 55;
 
-	auto cube = core.make_cube(def);
-	cube.insert(rows);
-	auto result = cube.query(Query{});
+	auto db = core.make_db(def);
+	db.insert(rows);
+	auto result = db.query(Query{});
 }
 
 void fullTest(Core& core)
@@ -102,9 +102,9 @@ void fullTest(Core& core)
 	q.operationsMeasures.emplace_back(2);
 	q.operationsTypes.emplace_back(Query::OperationType::Sum);
 
-	auto cube = core.make_cube(def);
-	cube.insert(rows);
-	auto result = cube.query(q);
+	auto db = core.make_db(def);
+	db.insert(rows);
+	auto result = db.query(q);
 }
 
 int main(int argc, char** argv)

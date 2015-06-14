@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 	auto core = IR::Core{argv[1]};
 
 	auto cubeSQLDef = CubeSQL::parseCubeDef(sql);
-	auto cube = core.make_cube(toIR(cubeSQLDef));
+	auto cube = core.make_db(toIR(cubeSQLDef));
 
 	int err = RunServers(cube, cubeSQLDef, argv[2], argv[3]);
 
