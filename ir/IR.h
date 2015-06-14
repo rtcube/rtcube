@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <cstdint>
 #include <vector>
 
 #define OP_NONE 0
@@ -36,6 +37,15 @@ namespace IR
 	{
 		std::vector<Dim> dims;
 		std::vector<Mea> meas;
+
+		uint64_t cube_size() const
+		{
+			uint64_t cube_size = 1;
+			for (const Dim& dim : dims)
+				cube_size *= dim.range;
+			cube_size *= meas.size();
+			return cube_size;
+		}
 	};
 
 	union mea
@@ -50,7 +60,7 @@ namespace IR
 		size_t num_meas;
 		size_t num_rows;
 
-		std::vector<int> dims; // dims of row1, then dims of row2, then ...
+		std::vector<uint> dims; // dims of row1, then dims of row2, then ...
 		std::vector<mea> meas; // meas of row1, then meas of row2, then ...
 
 		Rows(size_t num_dims, size_t num_meas, size_t num_rows): num_dims(num_dims), num_meas(num_meas), num_rows(num_rows), dims(num_rows * num_dims), meas(num_rows * num_meas) {}
@@ -60,10 +70,10 @@ namespace IR
 			Rows* r;
 			size_t i;
 
-			int* dims() {return r->dims.data() + i*r->num_dims;}
+			uint* dims() {return r->dims.data() + i*r->num_dims;}
 			mea* meas() {return r->meas.data() + i*r->num_meas;}
 
-			const int* dims() const {return r->dims.data() + i*r->num_dims;}
+			const uint* dims() const {return r->dims.data() + i*r->num_dims;}
 			const mea* meas() const {return r->meas.data() + i*r->num_meas;}
 		};
 
@@ -72,7 +82,7 @@ namespace IR
 			const Rows* r;
 			size_t i;
 
-			const int* dims() const {return r->dims.data() + i*r->num_dims;}
+			const uint* dims() const {return r->dims.data() + i*r->num_dims;}
 			const mea* meas() const {return r->meas.data() + i*r->num_meas;}
 		};
 
@@ -160,39 +170,75 @@ namespace IR
 		{}
 	};
 
-	struct QueryResult
+	struct Cube
 	{
-		IR::Query query;
+		CubeDef def;
+		std::vector<mea> data;
 
-		//Liczba linii wyniku - ile jest możliwych kombinacji wartości wymiarów
-		int resultsCount;
-
-		//Rozmiar jednego wyniku - ile operacji na miarach było robionych
-		int measPerResult;
-
-		//Rozmiary kolejnych poziomów w tablicy resultMeas
-		std::vector<int> selectDimSizes;
-
-		//Wielowymiarowa tablica spłaszczona do jednowymiarowej. Zawiera kolejne linie wyniku. Jak się poruszać po tym -> GetQuerryResultString w RTQuery.cu
-		std::vector<int> resultMeas;
-
-		QueryResult(Query q): query(q)
+		Cube(const CubeDef& def)
+			: def(def)
 		{
-			selectDimSizes = std::vector<int>(q.selectDims.size());
+			data.resize(def.cube_size());
+		}
 
-			int currentSize = 1;
-			for (int i = q.selectDims.size() - 1; i >= 0; --i)
+		// Invariant: len(indexes) == def.dims.size()
+		mea* operator[](const uint64_t* indexes)
+		{
+			return &data[encode_index(indexes)];
+		}
+
+		// Invariant: len(indexes) == def.dims.size()
+		mea* operator[](const uint* indexes)
+		{
+			return &data[encode_index(indexes)];
+		}
+
+		// Invariant: len(indexes) == def.dims.size()
+		template <typename T>
+		uint64_t encode_index(const T* indexes)
+		{
+			uint64_t index = indexes[0];
+
+			for (int i = 1; i < def.dims.size(); ++i)
+				index = index * def.dims[i].range + indexes[i];
+
+			index *= def.meas.size();
+
+			return index;
+		}
+
+		// Invariant: len(indexes) == def.dims.size()
+		// Post-con: RV == indexes.
+		template <typename T>
+		T* decode_index(uint64_t index, T* indexes)
+		{
+			index /= def.meas.size();
+
+			for (int i = def.dims.size() - 1; i > 0; --i)
 			{
-				if (q.selectDims[i] != 0)
-				{
-					selectDimSizes[i] = currentSize;
-					currentSize *= q.whereDimValuesCounts[i];
-				}
+				indexes[i] = index % def.dims[i].range;
+				index /= def.dims[i].range;
 			}
 
-			resultsCount = currentSize;
-			measPerResult = q.operationsMeasures.size();
-			resultMeas = std::vector<int>(resultsCount * measPerResult, 0);
+			indexes[0] = index;
+
+			return indexes;
 		}
 	};
+
+	inline CubeDef resultCubeDef(const CubeDef& c, const Query& q)
+	{
+		CubeDef r;
+
+		for (int i = 0; i < q.selectDims.size(); ++i)
+			if (q.selectDims[i])
+				r.dims.push_back(q.whereDimValuesCounts[i]);
+
+		for (int i = 0; i < q.operationsMeasures.size(); ++i)
+			r.meas.push_back(q.operationsTypes[i] == Query::OperationType::Cnt ? Mea::Int : c.meas[i]);
+
+		return r;
+	}
+
+	typedef std::vector<mea> QueryResult;
 }

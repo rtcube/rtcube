@@ -4,8 +4,10 @@
 
 class DummyCube final: public IR::CubeImpl
 {
+	IR::Cube cube;
+
 public:
-	DummyCube(const IR::CubeDef& def): CubeImpl(def) {}
+	DummyCube(const IR::CubeDef& def): CubeImpl(def), cube(def.cube_size() < 100000 ? def : IR::CubeDef{}) {}
 
 	void insert(const IR::Rows&) override;
 	IR::QueryResult query(const IR::Query&) override;

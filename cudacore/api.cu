@@ -72,10 +72,10 @@ IR::QueryResult CudaCube::query(const IR::Query& q)
 
 	//PrintQuerryResult(cudaResult);
 
-	IR::QueryResult result(q);
+	IR::QueryResult result;
+	result.resize(result.resultMeas.size());
 
-	thrust::copy_n(cudaResult.d_ResultMeas, result.resultMeas.size(), result.resultMeas.begin());
-	thrust::copy_n(cudaResult.d_SelectDimSizes, result.selectDimSizes.size(), result.selectDimSizes.begin());
+	thrust::copy_n(cudaResult.d_ResultMeas, result.resultMeas.size(), result.begin());
 
 	FreeQuerry(cudaQuery);
 	FreeResult(cudaResult);
