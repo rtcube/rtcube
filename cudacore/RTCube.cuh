@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -31,7 +33,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
 typedef struct RTCube
 {
 	//Ile wektorów przy aktualnej definicji kostka może pomieścić
-	int Capacity;
+	uint64_t Capacity;
 
 	//Pamięć, gdzie trzymane są kody wektorów
 	thrust::device_ptr<unsigned long int> Codes;

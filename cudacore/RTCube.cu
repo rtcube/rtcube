@@ -21,8 +21,8 @@ RTCube InitCube(float cardMemoryPartToFill, int dimensionsCount, int *dimensions
 	size_t freeMemory, totalMemory;
 	cudaMemGetInfo(&freeMemory, &totalMemory);
 
-	double memoryToAllocate = (double)freeMemory * (double)cardMemoryPartToFill;
-	cube.Capacity = (int)memoryToAllocate / cube.MemoryPerVector;
+	uint64_t memoryToAllocate = uint64_t(freeMemory)/100 * uint64_t(cardMemoryPartToFill * 100);
+	cube.Capacity = memoryToAllocate / cube.MemoryPerVector;
 	cube.VectorsCount = 0;
 
 	cube.Codes = thrust::device_malloc<unsigned long int>(cube.Capacity);
