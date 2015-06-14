@@ -9,6 +9,7 @@
 
 #include "../proto/proto.h"
 #include "../util/HostPort.h"
+#include "Generator.h"
 
 #define ROWS_PER_BLOCK 1000000
 #define BUFFER_SIZE 4096
@@ -18,10 +19,6 @@ using namespace std;
 
 // socket communication
 namespace Generator {
-struct socket_info {
-    int fd;
-    struct sockaddr_in6 sin6;
-};
 
 socket_info * makeSocket(HostPort dest, bool test_connectivity = false) {
     socket_info * new_socket = new socket_info();
@@ -87,15 +84,6 @@ std::vector<socket_info*> LoadAddressesFile(std::string filename) {
 // Generation
 namespace Generator {
 
-// struct holding info about the cube's structure
-struct cube_info {
-    int no_cols;
-    bool * range_or_list;
-    int * max_vals;
-    int * min_vals;
-    std::vector<int> * lists;
-};
-
 // generates a single column value given a cube_info struct pointer
 inline int getVal(int col_nr, unsigned int * rand_r_seed, cube_info * cube) {
     if (cube->range_or_list[col_nr]) {
@@ -147,7 +135,7 @@ int generateRows(int no_rows, unsigned int * rand_r_seed,  cube_info *cube, std:
     int bytes = 0;
     for (int i = 0; i < no_rows; ++i) {
         clock_gettime(CLOCK_REALTIME, &ts);
-        time = (int)(ts.tv_sec % 2000 * 1000.0f + ts.tv_nsec * 0.000001f);
+        time = (int)(ts.tv_sec % 20000 * 1000.0f + ts.tv_nsec * 0.000001f);
         row += generateIntRow(time, rand_r_seed, cube,  with_time);
 
         if ((i % rows_per_send) == 0) {

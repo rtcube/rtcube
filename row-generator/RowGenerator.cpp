@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <stdexcept>
 
-#include "Generator.cpp"
+#include "Generator.h"
 
 using namespace std;
 
