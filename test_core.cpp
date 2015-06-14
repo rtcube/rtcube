@@ -76,7 +76,7 @@ void simpleTest(Core& core)
 	cout << result << endl;
 
 	uint indexes[] = {3, 7};
-	assert(result[indexes]->i == 55);
+	//assert(result[indexes]->i == 55);
 }
 
 void fullTest(Core& core)
@@ -89,25 +89,19 @@ void fullTest(Core& core)
 	def.dims.push_back(10);
 	def.dims.push_back(500);
 
-	def.meas.push_back(IR::Mea::Float);
-	def.meas.push_back(IR::Mea::Float);
-	def.meas.push_back(IR::Mea::Float);
+	def.meas.push_back(IR::Mea::Int);
+	def.meas.push_back(IR::Mea::Int);
+	def.meas.push_back(IR::Mea::Int);
 
-	IR::Rows rows = IR::Rows(5, 3, 10);
+	auto rows = IR::Rows(def.dims.size(), def.meas.size(), 100);
 
-	for(int i = 0; i < 10; ++i)
+	for (int i = 0; i < 100; ++i)
 	{
-		for(int j = 0; j < 5; ++j)
-		{
-			rows.dims[i * 5 + j] = i + j;
-		}
+		for (int j = 0; j < def.dims.size(); ++j)
+			rows[i].dims()[j] = 0;
 
-		for(int j = 0; j < 3; ++j)
-		{
-			IR::mea m;
-			m.f = i + j + 0.5;
-			rows.meas[i * 3 + j] = m;
-		}
+		for (int j = 0; j < def.meas.size(); ++j)
+			rows[i].meas()[j].i = j + 1;
 	}
 
 	auto q = IR::Query{5};
@@ -161,7 +155,14 @@ void fullTest(Core& core)
 
 	auto db = core.make_db(def);
 	db.insert(rows);
-	auto result = db.query(q);
+	auto result_def = IR::resultCubeDef(def, q);
+	auto result_data = db.query(q);
+
+	auto result = IR::Cube{result_def, result_data};
+
+	// (0, 0) shall be [1 * 100; 100; 3 * 100].
+
+	cout << result << endl;
 }
 
 int main(int argc, char** argv)
