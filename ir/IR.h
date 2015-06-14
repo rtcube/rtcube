@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <cstdint>
+#include <cassert>
 #include <vector>
 
 #define OP_NONE 0
@@ -179,6 +180,13 @@ namespace IR
 			: def(def)
 		{
 			data.resize(def.cube_size());
+		}
+
+		Cube(const CubeDef& def, const std::vector<mea>& data)
+			: def(def)
+			, data(data)
+		{
+			assert(data.size() == def.cube_size());
 		}
 
 		// Invariant: len(indexes) == def.dims.size()
