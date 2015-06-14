@@ -53,6 +53,7 @@ void CudaCube::insert(const IR::Rows& rows)
 
 }
 
+#include <iostream>
 IR::QueryResult CudaCube::query(const IR::Query& q)
 {
 	Querry cudaQuery = InitQuerry(def().dims.size(), def().meas.size(), q.operationsMeasures.size());
@@ -70,12 +71,14 @@ IR::QueryResult CudaCube::query(const IR::Query& q)
 
 	QueryResult cudaResult = ProcessQuerry(cube, cudaQuery);
 
-	//PrintQuerryResult(cudaResult);
+	PrintQuerryResult(cudaResult);
 
 	IR::QueryResult result;
-	result.resize(result.resultMeas.size());
+	result.resize(cudaResult.ResultsCount * cudaResult.MeasPerResult);
 
-	thrust::copy_n(cudaResult.d_ResultMeas, result.resultMeas.size(), result.begin());
+	std::cout << cudaResult.ResultsCount << " " << cudaResult.MeasPerResult << std::endl;
+
+	thrust::copy_n(cudaResult.d_ResultMeas, result.size(), (int64_t*) result.data());
 
 	FreeQuerry(cudaQuery);
 	FreeResult(cudaResult);

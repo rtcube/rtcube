@@ -18,6 +18,9 @@ IR::QueryResult DummyCube::query(const IR::Query& q)
 {
 	auto rcube = resultCubeDef(def(), q);
 
+	if (rcube.cube_size() == cube.def.cube_size())
+		return cube.data; // Trololo.
+
 	auto result = IR::QueryResult{};
 	result.resize(rcube.cube_size());
 

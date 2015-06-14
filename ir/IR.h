@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdlib>
-#include <cstdint>
+#include <stdint.h>
 #include <cassert>
 #include <vector>
 
@@ -42,8 +42,8 @@ namespace IR
 		uint64_t cube_size() const
 		{
 			uint64_t cube_size = 1;
-			for (const Dim& dim : dims)
-				cube_size *= dim.range;
+			for (int i = 0; i < dims.size(); ++i)
+				cube_size *= dims[i].range;
 			cube_size *= meas.size();
 			return cube_size;
 		}
@@ -203,7 +203,7 @@ namespace IR
 
 		// Invariant: len(indexes) == def.dims.size()
 		template <typename T>
-		uint64_t encode_index(const T* indexes)
+		uint64_t encode_index(const T* indexes) const
 		{
 			uint64_t index = indexes[0];
 
@@ -218,7 +218,7 @@ namespace IR
 		// Invariant: len(indexes) == def.dims.size()
 		// Post-con: RV == indexes.
 		template <typename T>
-		T* decode_index(uint64_t index, T* indexes)
+		T* decode_index(uint64_t index, T* indexes) const
 		{
 			index /= def.meas.size();
 
@@ -243,7 +243,7 @@ namespace IR
 				r.dims.push_back(q.whereDimValuesCounts[i]);
 
 		for (int i = 0; i < q.operationsMeasures.size(); ++i)
-			r.meas.push_back(q.operationsTypes[i] == Query::OperationType::Cnt ? Mea::Int : c.meas[i]);
+			r.meas.push_back(int(q.operationsTypes[i]) == OP_CNT ? Mea::Int : c.meas[i]);
 
 		return r;
 	}

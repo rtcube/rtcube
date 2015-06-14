@@ -5,6 +5,35 @@
 using namespace IR;
 using namespace std;
 
+#include <iomanip>
+
+void print_indexes(std::ostream& out, const CubeDef& def, const uint64_t* indexes)
+{
+	out << "(";
+	out << indexes[0];
+	for (int i = 1; i < def.dims.size(); ++i)
+		out << ", " << indexes[i];
+	out << ")";
+}
+
+std::ostream& operator<<(std::ostream& out, const IR::Cube& cube)
+{
+	for (uint64_t i = 0; i < cube.data.size(); i += cube.def.meas.size())
+	{
+		out << std::setw(3) << i << " ";
+		uint64_t indexes[2];
+		print_indexes(out, cube.def, cube.decode_index(i, indexes));
+
+		auto data = &cube.data[i];
+		for (uint64_t j = 0; j < cube.def.meas.size(); ++j)
+			out << std::setw(10) << data[j].i;
+
+		out << std::endl;
+	}
+
+	return out;
+}
+
 void simpleTest(Core& core)
 {
 	auto def = CubeDef{};
@@ -17,9 +46,37 @@ void simpleTest(Core& core)
 	rows[0].dims()[1] = 7;
 	rows[0].meas()[0].i = 55;
 
+	auto query = Query{2};
+
+	query.selectDims[0] = 1;
+	query.whereDimMode[0] = Query::CondType::MaxRange;
+	query.whereStartRange[0] = 0;
+	query.whereEndRange[0] = 5;
+	query.whereDimValuesCounts[0] = 5;
+
+	query.selectDims[1] = 1;
+	query.whereDimMode[1] = Query::CondType::MaxRange;
+	query.whereStartRange[1] = 0;
+	query.whereEndRange[1] = 10;
+	query.whereDimValuesCounts[1] = 10;
+
+	query.operationsTypes.push_back(Query::OperationType::Sum);
+	query.operationsMeasures.push_back(0);
+
 	auto db = core.make_db(def);
 	db.insert(rows);
-	auto result = db.query(Query{});
+	auto result_def = IR::resultCubeDef(def, query);
+	auto result_data = db.query(query);
+
+	auto result = IR::Cube{result_def, result_data};
+
+	cout << "Base def size: " << def.cube_size() << endl;
+	cout << "Result def size: " << result_def.cube_size() << endl;
+	cout << "Result data size: " << result_data.size() << endl;
+	cout << result << endl;
+
+	uint indexes[] = {3, 7};
+	assert(result[indexes]->i == 55);
 }
 
 void fullTest(Core& core)

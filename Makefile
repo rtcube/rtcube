@@ -145,7 +145,7 @@ lib/librtcudacore.so: obj/cudacore/RTCube.o obj/cudacore/RTQuery.o obj/cudacore/
 	rm -f ./lib/librtcudacore.so
 	ln -s librtcudacore.so.0 ./lib/librtcudacore.so
 
-obj/cudacore/RTCube.o: cudacore/*.cuh cudacore/api.cu cudacore/RTCube.cu .dirs3
+obj/cudacore/RTCube.o: cudacore/*.cuh cudacore/RTCube.cu .dirs3
 	@echo $(ReportMakeAction)
 	$(NVCC) -c --compiler-options -fPIC cudacore/RTCube.cu -o obj/cudacore/RTCube.o
 
