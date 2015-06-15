@@ -30,16 +30,24 @@ void CudaCube::insert(const IR::Rows& rows)
 	thrust::device_ptr<int> MeasuresPacked = thrust::device_malloc<int>(rows.num_meas * rows.num_rows);
 
 	std::vector<int> hostDimenisons;
-	std::vector<float> hostMeasures;
+	std::vector<int> hostMeasures;
 
 	for(int i = 0; i < rows.num_dims; ++i)
 		for(int j = 0; j < rows.num_rows; ++j)
 			hostDimenisons.push_back(rows.dims[j * rows.num_dims + i]);
 
 	for(int i = 0; i < rows.num_meas; ++i)
-		for(int j = 0; j < rows.num_rows; ++j)
-			hostMeasures.push_back(rows.meas[j * rows.num_meas + i].f);
-
+	{
+		IR::Mea::Type type = def().meas[i].type;
+		
+		if(type == IR::Mea::Int)
+			for(int j = 0; j < rows.num_rows; ++j)
+				hostMeasures.push_back(rows.meas[j * rows.num_meas + i].i);
+		else
+			for(int j = 0; j < rows.num_rows; ++j)
+				hostMeasures.push_back(rows.meas[j * rows.num_meas + i].f);
+	}
+		
 	thrust::copy_n(hostDimenisons.begin(), rows.num_dims * rows.num_rows, DimensionsPacked);
 	thrust::copy_n(hostMeasures.begin(), rows.num_meas * rows.num_rows, MeasuresPacked);
 
