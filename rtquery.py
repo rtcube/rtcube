@@ -115,7 +115,7 @@ def query(sockets, cubedef, cubesql):
 
 """
 import rtquery
-x = rtquery.query([("::1", 2121)], "dim time <0,10000>; mea content <0,100>.", "SELECT time, count(content)")
+x = rtquery.query([("::1", 2001), ("::1", 2002)], "dim time <0,100>; mea content <0,100>.", "SELECT time, COUNT(content)")
 for i, v in x:
   print(i, v)
 """

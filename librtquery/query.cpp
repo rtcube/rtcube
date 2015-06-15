@@ -85,11 +85,62 @@ namespace RTCube
 			results.emplace_back(r_def, data);
 		}
 
-		// TODO merge
+		auto result = results[0];
+
+		assert(q_ir.operationsTypes.size() == result.def.meas.size());
+
+		for (int i = 1; i < results.size(); ++i)
+		{
+			for (int j = 0; j < result.data.size(); j += result.def.meas.size())
+			{
+				for (int m = 0; m < result.def.meas.size(); ++m)
+				{
+					switch (q_ir.operationsTypes[m])
+					{
+						case IR::Query::OperationType::Sum:
+						case IR::Query::OperationType::Cnt:
+							switch (result.def.meas[m].type)
+							{
+								case 0:
+									result.data[j + m].i += results[i].data[j + m].i;
+								break;
+								case 1:
+									result.data[j + m].f += results[i].data[j + m].f;
+								break;
+							}
+						break;
+
+						case IR::Query::OperationType::Min:
+							switch (result.def.meas[m].type)
+							{
+								case 0:
+									result.data[j + m].i = std::min(result.data[j + m].i, results[i].data[j + m].i);
+								break;
+								case 1:
+									result.data[j + m].f = std::min(result.data[j + m].f, results[i].data[j + m].f);
+								break;
+							}
+						break;
+
+						case IR::Query::OperationType::Max:
+							switch (result.def.meas[m].type)
+							{
+								case 0:
+									result.data[j + m].i = std::max(result.data[j + m].i, results[i].data[j + m].i);
+								break;
+								case 1:
+									result.data[j + m].f = std::max(result.data[j + m].f, results[i].data[j + m].f);
+								break;
+							}
+						break;
+					}
+				}
+			}
+		}
 
 		std::cout << "Results size: " << results.size() << std::endl;
 
-		return results[0];
+		return result;
 	}
 }
 
