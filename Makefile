@@ -70,10 +70,10 @@ gdb:
 	cd gdb; wget http://cz.archive.ubuntu.com/ubuntu/pool/main/g/gdb/gdb_7.4-2012.02-0ubuntu2_amd64.deb
 	cd gdb; dpkg -x gdb_7.4-2012.02-0ubuntu2_amd64.deb .
 
-CXX=g++ -g -Wall
+CXX=g++ -g
 #Use this to switch to gcc downloaded with make gcc:
 #CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc
-CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc -gdwarf-3 -Wall
+CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc -gdwarf-3
 
 NVCC=nvcc -arch=sm_20 --compiler-options -std=c++11 -U__GXX_EXPERIMENTAL_CXX0X__ -U__cplusplus -D__cplusplus=199711L -g
 
