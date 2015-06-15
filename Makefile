@@ -121,9 +121,9 @@ bin/gpunode: gpunode/* util/* proto/* server/* cubesql/* to_ir/* ir/* .dirs3
 
 # Make library recipes
 
-lib/librtquery.so: cubesql/* librtquery/* .dirs3
+lib/librtquery.so: cubesql/* to_ir/* ir/* librtquery/* .dirs3
 	@echo $(ReportMakeAction)
-	$(CXX14) -shared -fPIC librtquery/query.cpp cubesql/query.cpp cubesql/tokenizer.cpp cubesql/parser.cpp -o ./lib/librtquery.so.0
+	$(CXX14) -shared -fPIC librtquery/query.cpp cubesql/query.cpp cubesql/tokenizer.cpp cubesql/parser.cpp to_ir/cubedef.cpp to_ir/query.cpp -o ./lib/librtquery.so.0
 	rm -f ./lib/librtquery.so
 	ln -s librtquery.so.0 ./lib/librtquery.so
 

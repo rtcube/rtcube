@@ -4,6 +4,8 @@
 #include <string>
 #include <unistd.h>
 
+#include "../ir/IR.h"
+
 namespace RTCube
 {
 	struct fd
@@ -21,9 +23,10 @@ namespace RTCube
 		operator int() const {return _fd;}
 	};
 
-	void query(const std::vector<std::string>& hostports, const std::string& cubesql);
+	// TODO Return something prettier than IR::Cube.
+	auto query(const std::vector<std::string>& hostports, const std::string& cubedef, const std::string& cubesql) -> IR::Cube;
 
 	auto connect(const std::vector<std::string>& hostports) -> std::vector<fd>;
-	void query(const std::vector<int>& sockets, const std::string& cubesql);
-	void query(const std::vector<fd>& sockets, const std::string& cubesql);
+	auto query(const std::vector<int>& sockets, const std::string& cubedef, const std::string& cubesql) -> IR::Cube;
+	auto query(const std::vector<fd>& sockets, const std::string& cubedef, const std::string& cubesql) -> IR::Cube;
 }

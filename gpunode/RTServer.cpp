@@ -5,6 +5,7 @@
 
 #include "../proto/proto.h"
 #include "../util/HostPort.h"
+#include "../util/fd.h"
 
 #include "../ir/core.h"
 #include "../cubesql/parser.h"
@@ -102,6 +103,8 @@ int accept_client(int sfd)
 
 void communicateStream(IR::DB &cube, const CubeSQL::CubeDef &def, int cfd)
 {
+	auto cfd_autoclose = fd{cfd};
+
 	auto buf_size = 8092;
 	char buf[buf_size];
 	size_t read_size = 0;
@@ -121,9 +124,9 @@ void communicateStream(IR::DB &cube, const CubeSQL::CubeDef &def, int cfd)
 	auto query_sql = CubeSQL::parse(query);
 	auto query_ir = toIR(def, cube.def(), query_sql);
 
-	cube.query(query_ir);
+	auto result = cube.query(query_ir);
 
-	if (TEMP_FAILURE_RETRY(close(cfd)) < 0) ERR("close");
+	bulk_write(cfd, (char*) result.data(), result.size() * sizeof(result[0]));
 }
 
 void communicateDgram(IR::DB &cube, const CubeSQL::CubeDef &def, int fd)
