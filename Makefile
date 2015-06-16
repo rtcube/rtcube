@@ -113,7 +113,7 @@ bin/server: util/* proto/* server/* .dirs3
 
 bin/row-generator: proto/* row-generator/* .dirs3
 	@echo $(ReportMakeAction)
-	$(CXX14) -lrt -pthread proto/proto.cpp row-generator/Generator.cpp row-generator/RowGenerator.cpp -o ./bin/row-generator
+	$(CXX14) -lrt -pthread proto/proto.cpp row-generator/Generation.cpp row-generator/main.cpp -o ./bin/row-generator
 
 bin/gpunode: gpunode/* util/* proto/* server/* cubesql/* to_ir/* ir/* .dirs3
 	@echo $(ReportMakeAction)
