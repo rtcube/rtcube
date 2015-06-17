@@ -6,10 +6,16 @@ using namespace std;
 
 namespace Generator{
 
+enum col_types{
+    range_of_vals = 0,
+    list_of_vals = 1,
+    function_vals = 2
+};
+
 // struct holding info about the cube's structure
 struct cube_info {
     int no_cols;
-    bool * range_or_list;
+    col_types * col_type;
     int * max_vals;
     int * min_vals;
     std::vector<int> * lists;

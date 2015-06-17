@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <thread>
 #include <ctime>
+#include <cmath>
 
 #include "../proto/proto.h"
 #include "Send.cpp"
@@ -18,39 +19,47 @@ using namespace std;
 
 namespace Generator {
 
+bool canGenerateFromCube(cube_info *cube);
+
 // generates a single column value given a cube_info struct pointer
-inline int getVal(int col_nr, unsigned int * rand_r_seed, cube_info * cube) {
-    if (cube->range_or_list[col_nr]) {
-        //range
-        return rand_r(rand_r_seed) % cube->max_vals[col_nr] + cube->min_vals[col_nr];
-    } else {
-        //list
-        std::vector<int>* list = &(cube->lists[col_nr]);
-        int index = rand_r(rand_r_seed) % list->size();
-        return (*list)[index];
+inline int getVal(int time, int col_nr, unsigned int * rand_r_seed, cube_info * cube) {
+    int val;
+    switch (cube->col_type[col_nr])
+    {
+        case Generator::range_of_vals:
+        {
+            val = rand_r(rand_r_seed) % cube->max_vals[col_nr] + cube->min_vals[col_nr];
+            break;
+        }
+        case Generator::list_of_vals:
+        {
+            std::vector<int>* list = &(cube->lists[col_nr]);
+            int index = rand_r(rand_r_seed) % list->size();
+            val = (*list)[index];
+            break;
+        }
+        case Generator::function_vals:
+        {
+            val = 333;
+            break;
+        }
     }
+
+    return val;
 }
 
 inline std::string generateIntRow(int time, unsigned int * rand_r_seed, cube_info *cube, bool with_time = true) {
-    int val;
     auto v = std::vector<proto::value> {};
 
     if (with_time)
         v.emplace_back(time);
 
-    for (int i = 0; i < cube->no_cols; ++i) {
-        v.emplace_back(getVal(i, (unsigned int *)rand_r_seed,  cube));
+    for (int col_nr = 0; col_nr < cube->no_cols; ++col_nr) {
+        auto val = getVal(time, col_nr, rand_r_seed, cube);
+        v.emplace_back(val);
     }
 
     return proto::serialize(v);
-}
-
-bool canGenerateFromCube(cube_info *cube) {
-    if (!cube->max_vals || !cube->min_vals || !cube->range_or_list) {
-        std::cerr << "Variables for random generation are not set" << std::endl;
-        return false;
-    }
-    return true;
 }
 
 // generates no_rows rows based on the given cube_info pointer,
@@ -118,93 +127,5 @@ void StartGenerating(int no_blocks, cube_info *cube, std::vector<socket_info*> s
     }
 }
 
-// cube definition parsing
-//
-// parses a line of comma separated integer values
-void parseIntLine(std::string line, std::vector<int> & vector) {
-    std::string elem;
-    std::stringstream ss(line);
-    int val;
 
-    while (getline(ss, elem, ',')) {
-        try {
-            val = std::stoi(elem);
-            vector.push_back(val);
-        }
-        catch(const std::invalid_argument& ia)
-        {
-            std::cerr << "Could not parse '" << elem << "' in line '" << line << std::endl;
-        }
-    }
-}
-
-// returns a pointer to a cube_info struct, parsed from a file
-cube_info* LoadCubeFile(std::string filename) {
-    std::ifstream file(filename.c_str());
-    cube_info* cube = new cube_info();
-    if (!file.is_open()) {
-        return NULL;
-    }
-
-    std::string line;
-    int dim_count = 0, m_count = 0;
-    // count the number of dimensions and measures
-    std::getline(file, line);
-    if (line[0] == '#') {
-        while (std::getline(file, line) && line[0] != '#') {
-            dim_count++;
-        }
-        while (std::getline(file, line)) {
-            m_count++;
-        }
-    } else {
-        // file does not begin with '#'
-        return NULL;
-    }
-
-    // init the arrays
-    int no_cols = dim_count + m_count;
-    cube->no_cols = no_cols;
-    cube->range_or_list = new bool[no_cols];
-    cube->min_vals = new int [no_cols];
-    cube->max_vals = new int [no_cols];
-    cube->lists = new std::vector<int>[no_cols];
-
-    //now lets read the data
-    file.clear();
-    file.seekg(0, std::ios::beg);
-
-    int str_index, len, i = 0;
-    while (std::getline(file, line)) {
-        if (line[0] != '#') {
-            if ((cube->range_or_list[i] = (line[0] == '['))) {
-                // range of values
-                int val;
-                std::string val_substr;
-
-                str_index = line.find_first_of(',');
-                cube->min_vals[i] = std::stoi(line.substr(1, str_index - 1));
-                len = line.find_first_of(']') - str_index - 1;
-                val_substr = line.substr(str_index + 1, len);
-
-                try {
-                    val = std::stoi(val_substr);
-                    cube->max_vals[i] = val - cube->min_vals[i];
-                }
-                catch(const std::invalid_argument& ia)
-                {
-                    std::cerr << "Could not parse '" << val_substr << "' in line '" << line << std::endl;
-                }
-            } else {
-                // list of values
-                std::vector<int> list;
-                parseIntLine(line, list);
-                cube->lists[i] = list;
-            }
-            ++i;
-        }
-    }
-
-    return cube;
-}
 }
