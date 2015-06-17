@@ -93,12 +93,14 @@ void PrintCubeInfo(RTCube cube)
 	for (int i = 0; i < cube.DimensionsCount; ++i)
 		printf(" < 0 ,  %d ) ;", (int)cube.DimensionsRanges[i]);
 	printf("\n");
+	printf("Dimensions sizes: ");
 	for (int i = 0; i < cube.DimensionsCount; ++i)
 		printf("%d; ", (int)cube.DimensionsSizes[i]);
 	printf("\n");
 	printf("Measures count: %d\n", cube.MeasuresCount);
-	printf("Memory per vector: %d\n", cube.MemoryPerVector);
+	printf("Memory per vector: %d bytes\n", cube.MemoryPerVector);
 	printf("Cube capacity: %d\n", cube.Capacity);
+	printf("Total allocated memory: %d megabytes\n", cube.Capacity * cube.MemoryPerVector / 1000000);
 	printf("Currently inserted vectors count: %d\n\n", cube.VectorsCount);
 }
 
