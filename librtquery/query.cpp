@@ -58,9 +58,6 @@ namespace RTCube
 
 		auto r_def = IR::resultCubeDef(d_ir, q_ir);
 
-		if (r_def.dims[0].range < 5)
-			throw 0;
-
 		for (auto s : sockets)
 			if (::send(s, cubesql.c_str(), cubesql.size() + 1, 0) != cubesql.size() + 1)
 				throw std::system_error{errno, std::system_category(), "RTCube::query(): send"};
@@ -137,8 +134,6 @@ namespace RTCube
 				}
 			}
 		}
-
-		std::cout << "Results size: " << results.size() << std::endl;
 
 		return result;
 	}
