@@ -12,12 +12,18 @@ enum col_types{
     function_vals = 2
 };
 
+struct function_params{
+  int freq;
+  int peak;
+};
+
 // struct holding info about the cube's structure
 struct cube_info {
     int no_cols;
     col_types * col_type;
     int * max_vals;
     int * min_vals;
+    function_params * f_params;
     std::vector<int> * lists;
 };
 
@@ -31,6 +37,8 @@ std::vector<socket_info*> LoadAddressesFile(std::string filename);
 void StartGenerating(int no_blocks, cube_info *cube, std::vector<socket_info*> sockets, int no_threads);
 
 cube_info* LoadCubeFile(std::string filename);
+
+bool canGenerateFromCube(cube_info *cube);
 
 }
 

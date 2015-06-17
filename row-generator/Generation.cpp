@@ -19,8 +19,6 @@ using namespace std;
 
 namespace Generator {
 
-bool canGenerateFromCube(cube_info *cube);
-
 // generates a single column value given a cube_info struct pointer
 inline int getVal(int time, int col_nr, unsigned int * rand_r_seed, cube_info * cube) {
     int val;
@@ -40,7 +38,10 @@ inline int getVal(int time, int col_nr, unsigned int * rand_r_seed, cube_info * 
         }
         case Generator::function_vals:
         {
-            val = 333;
+            timespec ts;
+            clock_gettime(CLOCK_REALTIME, &ts);
+            float sin_time = (float) ts.tv_nsec / cube->f_params[col_nr].freq;
+            val = (int)(std::sin(sin_time) * cube->f_params[col_nr].peak);
             break;
         }
     }

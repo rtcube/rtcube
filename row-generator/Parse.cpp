@@ -14,7 +14,7 @@ namespace Generator{
 // cube definition parsing
 
 bool canGenerateFromCube(cube_info *cube) {
-    if (!cube->max_vals || !cube->min_vals || !cube->col_type) {
+    if (!cube->max_vals || !cube->min_vals || !cube->col_type || !cube->f_params) {
         std::cerr << "Variables for random generation are not set" << std::endl;
         return false;
     }
@@ -69,6 +69,7 @@ cube_info* LoadCubeFile(std::string filename) {
     cube->col_type = new Generator::col_types[no_cols];
     cube->min_vals = new int [no_cols];
     cube->max_vals = new int [no_cols];
+    cube->f_params = new function_params [no_cols];
     cube->lists = new std::vector<int>[no_cols];
 
     //now lets read the data
@@ -85,11 +86,13 @@ cube_info* LoadCubeFile(std::string filename) {
                 std::string val_substr;
 
                 str_index = line.find_first_of(',');
-                cube->min_vals[i] = std::stoi(line.substr(1, str_index - 1));
-                len = line.find_first_of(']') - str_index - 1;
-                val_substr = line.substr(str_index + 1, len);
 
                 try {
+                    val_substr = line.substr(1, str_index - 1);
+                    cube->min_vals[i] = std::stoi(val_substr);
+                    len = line.find_first_of(']') - str_index - 1;
+                    val_substr = line.substr(str_index + 1, len);
+
                     val = std::stoi(val_substr);
                     cube->max_vals[i] = val - cube->min_vals[i];
                 }
@@ -101,6 +104,26 @@ cube_info* LoadCubeFile(std::string filename) {
             else if (line[0] == 'f'){
                 // function
                 cube->col_type[i] = Generator::function_vals;
+
+                int freq, peak;
+                auto start = line.find_first_of('[');
+                len = line.find_first_of(',') - start - 1;
+                auto val_substr = line.substr(start + 1, len);
+
+                try{
+                    freq = std::stoi(val_substr);
+                    start += len + 1;
+                    len = line.find_first_of(']') - start - 1;
+                    val_substr = line.substr(start + 1, len);
+                    peak = std::stoi(val_substr);
+
+                    cube->f_params[i].freq = freq;
+                    cube->f_params[i].peak = peak;
+                }
+                catch(const std::invalid_argument& ia)
+                {
+                    std::cerr << "Could not parse '" << val_substr << "' in line '" << line << std::endl;
+                }
             }
             else {
                 // list of values
