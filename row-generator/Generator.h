@@ -13,7 +13,7 @@ enum col_types{
 };
 
 struct function_params{
-  int freq;
+  int period;
   int peak;
 };
 

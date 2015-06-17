@@ -105,19 +105,19 @@ cube_info* LoadCubeFile(std::string filename) {
                 // function
                 cube->col_type[i] = Generator::function_vals;
 
-                int freq, peak;
+                int period, peak;
                 auto start = line.find_first_of('[');
                 len = line.find_first_of(',') - start - 1;
                 auto val_substr = line.substr(start + 1, len);
 
                 try{
-                    freq = std::stoi(val_substr);
+                    period = std::stoi(val_substr);
                     start += len + 1;
                     len = line.find_first_of(']') - start - 1;
                     val_substr = line.substr(start + 1, len);
                     peak = std::stoi(val_substr);
 
-                    cube->f_params[i].freq = freq;
+                    cube->f_params[i].period = period;
                     cube->f_params[i].peak = peak;
                 }
                 catch(const std::invalid_argument& ia)

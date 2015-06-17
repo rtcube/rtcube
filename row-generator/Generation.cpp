@@ -40,7 +40,7 @@ inline int getVal(int time, int col_nr, unsigned int * rand_r_seed, cube_info * 
         {
             timespec ts;
             clock_gettime(CLOCK_REALTIME, &ts);
-            float sin_time = (float) ts.tv_nsec / cube->f_params[col_nr].freq;
+            float sin_time = (float) ts.tv_nsec / cube->f_params[col_nr].period;
             val = (int)(std::sin(sin_time) * cube->f_params[col_nr].peak);
             break;
         }
