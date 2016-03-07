@@ -1,7 +1,7 @@
 ReportMakeAction = "\n>> Making '$(@)'...\n"
 ReportTestAction = "\n>> Testing '$(@)'...\n"
 
-all: compile test
+all: compile
 
 nocuda: compile_nocuda test_nocuda
 
@@ -72,8 +72,8 @@ gdb:
 
 CXX=g++ -g
 #Use this to switch to gcc downloaded with make gcc:
-#CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc
-CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc -gdwarf-3
+CXX=g++ -static-libgcc
+#CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc -gdwarf-3
 
 NVCC=nvcc -arch=sm_20 --compiler-options -std=c++11 -U__GXX_EXPERIMENTAL_CXX0X__ -U__cplusplus -D__cplusplus=199711L -g
 
