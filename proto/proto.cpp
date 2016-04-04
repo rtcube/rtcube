@@ -15,7 +15,7 @@ namespace proto
 		{
 			ss.read((char*) &len, 1);
 		}
-		catch (istream::failure)
+		catch (const std::exception&)
 		{
 			return nullopt;
 		}
