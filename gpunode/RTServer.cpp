@@ -138,6 +138,10 @@ void communicateDgram(IR::DB &cube, const CubeSQL::CubeDef &def, int fd)
 	if ((len = TEMP_FAILURE_RETRY(recvfrom(fd, buffer, 8192, 0, (::sockaddr*) &addr, &addr_len))) < 0) ERR("read:");
 
 	auto msg = string{buffer, string::size_type(len)};
+//	cerr << "RECEIVED MESSAGE" << endl;
+//	for (int i = 0; i < len; i++)
+//		cerr << "0x" << hex << (unsigned)buffer[i] << " ";
+//	cerr << endl;
 	auto V = proto::unserialize(msg);
 	auto v_count = V.size();
 	auto r_len = def.dims.size() + def.meas.size();

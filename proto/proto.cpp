@@ -8,40 +8,26 @@ using namespace std;
 
 namespace proto
 {
-	inline auto read_internal(std::istream& ss) -> std::optional<value>
+	inline auto read_internal(const string& ss, size_t* startindex) -> std::optional<value>
 	{
 		uint8_t len;
-		try
-		{
-			ss.read((char*) &len, 1);
-		}
-		catch (istream::failure)
-		{
+		if (*startindex == ss.size())
 			return nullopt;
-		}
-
-		char buf[len];
-		ss.read(buf, len);
-		return value{string{(char*) buf, len}};
-	}
-
-	auto read(std::istream& ss) -> std::optional<value>
-	{
-		auto mask = ss.exceptions();
-		ON_EXIT(x, ss.exceptions(mask);)
-		ss.exceptions(std::istream::failbit | std::istream::badbit);
-
-		return read_internal(ss);
+		len = ss[*startindex];
+		*startindex += 1;
+		auto valuestr = ss.substr(*startindex, len);
+		auto result = value{valuestr};
+		*startindex += len;
+		return result;
 	}
 
 	auto unserialize(const string& in) -> std::vector<value>
 	{
 		auto out = std::vector<value>{};
-		stringstream ss{in, ios_base::in};
-		ss.exceptions(std::istream::failbit | std::istream::badbit);
+		size_t startindex = 0;
 		for(;;)
 		{
-			auto v = read_internal(ss);
+			auto v = read_internal(in, &startindex);
 			if (v)
 				out.emplace_back(*v);
 			else
