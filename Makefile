@@ -7,7 +7,7 @@ nocuda: compile_nocuda test_nocuda
 
 compile: compile_nocuda lib/librtcudacore.so
 
-compile_nocuda: bin/send bin/server bin/row-generator bin/gpunode lib/librtquery.so lib/librtdummycore.so
+compile_nocuda: bin/send bin/server bin/row-generator bin/data-generator bin/gpunode lib/librtquery.so lib/librtdummycore.so
 
 test: test_nocuda test_cudacore test_core_cuda
 
@@ -70,9 +70,9 @@ gdb:
 	cd gdb; wget http://cz.archive.ubuntu.com/ubuntu/pool/main/g/gdb/gdb_7.4-2012.02-0ubuntu2_amd64.deb
 	cd gdb; dpkg -x gdb_7.4-2012.02-0ubuntu2_amd64.deb .
 
-CXX=g++ -g
+#CXX=g++ -g
 #Use this to switch to gcc downloaded with make gcc:
-CXX=g++ -static-libgcc
+#CXX=g++ -static-libgcc
 #CXX=LD_LIBRARY_PATH=./gcc/usr/lib ./gcc/usr/bin/g++ -static-libgcc -gdwarf-3
 
 NVCC=nvcc -arch=sm_20 --compiler-options -std=c++11 -U__GXX_EXPERIMENTAL_CXX0X__ -U__cplusplus -D__cplusplus=199711L -g
@@ -114,6 +114,10 @@ bin/server: util/* proto/* server/* .dirs3
 bin/row-generator: proto/* row-generator/* .dirs3
 	@echo $(ReportMakeAction)
 	$(CXX14) -lrt -pthread proto/proto.cpp row-generator/Generation.cpp row-generator/Parse.cpp row-generator/main.cpp -o ./bin/row-generator
+
+bin/data-generator: proto/* data-generator/* .dirs3
+	@echo $(ReportMakeAction)
+	$(CXX14) proto/proto.cpp data-generator/main.cpp -o ./bin/data-generator
 
 bin/gpunode: gpunode/* util/* proto/* server/* cubesql/* to_ir/* ir/* .dirs3
 	@echo $(ReportMakeAction)

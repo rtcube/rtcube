@@ -5,3 +5,10 @@ obj
 gcc
 gdb
 frankenfile
+
+# QtCreator project files
+rtcube.config
+rtcube.creator*
+rtcube.files
+rtcube.includes
+
