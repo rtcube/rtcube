@@ -115,9 +115,9 @@ bin/row-generator: proto/* row-generator/* .dirs3
 	@echo $(ReportMakeAction)
 	$(CXX14) -lrt -pthread proto/proto.cpp row-generator/Generation.cpp row-generator/Parse.cpp row-generator/main.cpp -o ./bin/row-generator
 
-bin/data-generator: proto/* data-generator/* .dirs3
+bin/data-generator: proto/* data-generator/* row-generator/* .dirs3
 	@echo $(ReportMakeAction)
-	$(CXX14) proto/proto.cpp data-generator/main.cpp -o ./bin/data-generator
+	$(CXX14) -lrt -pthread proto/proto.cpp row-generator/Generation.cpp row-generator/Parse.cpp data-generator/generator.cpp data-generator/main.cpp -o ./bin/data-generator
 
 bin/gpunode: gpunode/* util/* proto/* server/* cubesql/* to_ir/* ir/* .dirs3
 	@echo $(ReportMakeAction)
