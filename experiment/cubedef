@@ -1,7 +1,7 @@
-dim recv T;
+dim recv <0,2147483647>;
 
-dim d1;
-dim d2;
+dim d1 <0,10>;
+dim d2 <0,100>;
 
-mea m1;
-mea m2.
+mea m1 <0,2147483647>;
+mea m2 <0,2147483647>.

@@ -6,7 +6,8 @@ import time
 
 
 addresses = [
-    ("::1", 2020)
+    ("192.168.143.217", 50000),
+    ("192.168.143.217", 60000)
 ]
 
 # TODO
@@ -14,7 +15,7 @@ addresses = [
 Here comes list of addresses (most likely plain IPv4) of gpunodes in 304
 """
 
-cubedef = open("cube").read()
+cubedef = open("experiment/cubedef").read()
 
 query = "SELECT MAX(m1), MAX(m2)"
 
@@ -26,4 +27,4 @@ while True:
     query_time = current_time_ms() - start_time
 
     # TODO - ms?
-    print("result:", res[-1], "time[ms]:", query_time)
+    print("result:", res[0], "time[ms]:", query_time)
