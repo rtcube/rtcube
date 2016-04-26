@@ -63,9 +63,9 @@ void GenerateData(const std::vector<Generator::socket_info *> &sockets, int gene
 
         clock_gettime(CLOCK_REALTIME, &ts_end);
         long ms = (ts_end.tv_sec - ts_start.tv_sec) * 1000.0f + ts_end.tv_nsec * 0.000001f - ts_start.tv_nsec * 0.000001f;
-        double MBps = (bytes * 0.000001) / (ms * 0.001);
 
-        std::cout << "Iteration " << x << "; Sent " << bytes << " bytes in " << ms << " ms; " << MBps << " MBps" << std::endl;
+        //std::cout << "Iteration " << x << "; Sent " << bytes << " bytes in " << ms << " ms; " << std::endl;
+        std::cout << generator_id << ',' << x << ',' << ms << ',' << (ts_end.tv_sec * 1000.0 + ts_end.tv_nsec * 0.000001);
     }
 }
 
