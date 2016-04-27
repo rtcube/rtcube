@@ -34,5 +34,5 @@ if __name__ == "__main__":
         #query_time = current_time_ms() - start_time
 
         # TODO - ms?
-        print(res[0], current_time_ms())
+        print(str(res[0]) + "," + str(current_time_ms()))
         # print("result:", res[0], "time[ms]:", query_time)
