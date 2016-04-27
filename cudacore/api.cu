@@ -3,7 +3,7 @@
 #include "RTCube.cuh"
 #include <vector>
 
-#define MEM_TO_FILL 0.2
+#define MEM_TO_FILL 0.8
 #define BLOCKS 32
 #define THREADS 32
 
@@ -16,7 +16,7 @@ CudaCube::CudaCube(const IR::CubeDef& cubeDef): CubeImpl(cubeDef)
 	cube = InitCube(MEM_TO_FILL, cubeDef.dims.size(), dimensionsSizes, cubeDef.meas.size(), BLOCKS, THREADS);
 	free(dimensionsSizes);
 
-	//PrintCubeInfo(cube);
+	PrintCubeInfo(cube);
 }
 
 CudaCube::~CudaCube()
@@ -79,7 +79,7 @@ IR::QueryResult CudaCube::query(const IR::Query& q)
 
 	QueryResult cudaResult = ProcessQuerry(cube, cudaQuery);
 
-	PrintQuerryResult(cudaResult);
+	//PrintQuerryResult(cudaResult);
 
 	IR::QueryResult result;
 	result.resize(cudaResult.ResultsCount * cudaResult.MeasPerResult);
