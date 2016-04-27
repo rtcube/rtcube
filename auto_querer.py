@@ -29,9 +29,10 @@ if __name__ == "__main__":
 
 
     while True:
-        start_time = current_time_ms()
+        #start_time = current_time_ms()
         res = rtq.query(addresses, cubedef, query)
-        query_time = current_time_ms() - start_time
+        #query_time = current_time_ms() - start_time
 
         # TODO - ms?
-        print("result:", res[0], "time[ms]:", query_time)
+        print(res[0], current_time_ms())
+        # print("result:", res[0], "time[ms]:", query_time)
