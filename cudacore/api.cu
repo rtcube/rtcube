@@ -84,7 +84,7 @@ IR::QueryResult CudaCube::query(const IR::Query& q)
 	IR::QueryResult result;
 	result.resize(cudaResult.ResultsCount * cudaResult.MeasPerResult);
 
-	std::cout << cudaResult.ResultsCount << " " << cudaResult.MeasPerResult << std::endl;
+	//std::cout << cudaResult.ResultsCount << " " << cudaResult.MeasPerResult << std::endl;
 
 	thrust::copy_n(cudaResult.d_ResultMeas, result.size(), (int64_t*) result.data());
 
