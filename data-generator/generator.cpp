@@ -65,7 +65,7 @@ void GenerateData(const std::vector<Generator::socket_info *> &sockets, int gene
         long ms = (ts_end.tv_sec - ts_start.tv_sec) * 1000.0f + ts_end.tv_nsec * 0.000001f - ts_start.tv_nsec * 0.000001f;
 
         //std::cout << "Iteration " << x << "; Sent " << bytes << " bytes in " << ms << " ms; " << std::endl;
-        std::cout << generator_id << ',' << x << ',' << ms << ',' << (ts_end.tv_sec * 1000.0 + ts_end.tv_nsec * 0.000001);
+        std::cout << generator_id << ',' << x << ',' << ms << ',' << (unsigned long long int)(ts_end.tv_sec * 1000.0 + ts_end.tv_nsec * 0.000001) << "\n";
     }
 }
 
