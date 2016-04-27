@@ -2,7 +2,7 @@
 
 class Program(object):	
 	def main(self):
-		self.infilename = "addresses304"
+		self.infilename = "addresses_all"
 		self.tcpfilename = self.infilename + "_tcp"
 		self.udpfilename = self.infilename + "_udp"
 		with open(self.tcpfilename, "w") as tcpfile:
