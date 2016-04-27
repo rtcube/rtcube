@@ -3,6 +3,9 @@ ReportTestAction = "\n>> Testing '$(@)'...\n"
 
 all: compile
 
+run:
+	./run.sh
+
 nocuda: compile_nocuda test_nocuda
 
 compile: compile_nocuda lib/librtcudacore.so
