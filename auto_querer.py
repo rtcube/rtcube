@@ -4,27 +4,34 @@ sys.path.append("../")
 import rtquery as rtq
 import time
 
+def print_usage():
+    print("USAGE: auto_querer.py <addresses_file> <cubedef_file>")
 
-addresses = [
-    ("192.168.143.217", 50000),
-    ("192.168.143.217", 60000)
-]
+def parse_addresses(file):
+    with open(file) as f:
+         stripped = [x.strip() for x in f.readlines()]
+         split = [x.split(':') for x in stripped]
 
-# TODO
-"""
-Here comes list of addresses (most likely plain IPv4) of gpunodes in 304
-"""
+         return [(x[0], x[1]) for x in split]
 
-cubedef = open("experiment/cubedef").read()
 
-query = "SELECT MAX(m1), MAX(m2)"
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print_usage()
+        sys.exit()
 
-current_time_ms = lambda: int(round(time.time() * 1000))
+    addresses_file = sys.argv[1]
+    cubedef = open(sys.argv[2]).read()
+    current_time_ms = lambda: int(round(time.time() * 1000))
+    query = "SELECT MAX(m1), MAX(m2)"
 
-while True:
-    start_time = current_time_ms()
-    res = rtq.query(addresses, cubedef, query)
-    query_time = current_time_ms() - start_time
+    addresses = parse_addresses(addresses_file)
 
-    # TODO - ms?
-    print("result:", res[0], "time[ms]:", query_time)
+
+    while True:
+        start_time = current_time_ms()
+        res = rtq.query(addresses, cubedef, query)
+        query_time = current_time_ms() - start_time
+
+        # TODO - ms?
+        print("result:", res[0], "time[ms]:", query_time)
