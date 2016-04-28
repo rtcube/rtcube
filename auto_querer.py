@@ -27,14 +27,17 @@ def main():
 
 	addresses = parse_addresses(addresses_file)
 
-
+	stderrleft = 5
 	while True:
 		#start_time = current_time_ms()
 		res = rtq.query(addresses, cubedef, query)
 		#query_time = current_time_ms() - start_time
 
 		# TODO - ms?
-		print(str(res[0]) + "," + str(current_time_ms()))
+		line = str(res[0]) + "," + str(current_time_ms())
+		print(line)
+		if stderrleft > 0:
+			print(line, file = sys.stderr)
 		# print("result:", res[0], "time[ms]:", query_time)
 
 if __name__ == "__main__":

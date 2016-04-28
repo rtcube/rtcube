@@ -29,7 +29,7 @@ def connect(addresses):
 		except KeyboardInterrupt:
 			raise;
 		except:
-			print(str(addr) + " is not responding", file = sys.stderr)
+			print(str(addr[0]) + ":" + str(addr[1]) + " is not responding", file = sys.stderr)
 
 class Cube:
 	def __init__(self, c_cube):
