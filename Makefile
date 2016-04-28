@@ -7,9 +7,7 @@ run:
 	./run.sh
 
 cffi:
-	if [! -d ~/local/lib/python3.5/site-packages]; then ~/local/lib/python3.5/site-packages; fi
-	export PYTHONPATH=~/local/lib/python3.5/site-packages
-	easy_install --prefix=$HOME/local cffi
+	source install_cffi.sh
 
 nocuda: compile_nocuda test_nocuda
 
