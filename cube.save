@@ -1,0 +1,3 @@
+dim time <0,100>;
+
+mea content <0,1000000>.
