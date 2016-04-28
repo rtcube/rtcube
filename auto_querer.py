@@ -14,9 +14,8 @@ def parse_addresses(file):
 
          return [(x[0], x[1]) for x in split]
 
-
-if __name__ == "__main__":
-    if len(sys.argv) < 3:
+def main():
+	if len(sys.argv) < 3:
         print_usage()
         sys.exit()
 
@@ -36,3 +35,9 @@ if __name__ == "__main__":
         # TODO - ms?
         print(str(res[0]) + "," + str(current_time_ms()))
         # print("result:", res[0], "time[ms]:", query_time)
+
+if __name__ == "__main__":
+	try:
+	    main()
+	except KeyboardInterrupt:
+		print("Terminated by user", file = stderr)

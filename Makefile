@@ -6,6 +6,11 @@ all: compile
 run:
 	./run.sh
 
+cffi:
+	if [! -d ~/local/lib/python3.5/site-packages]; then ~/local/lib/python3.5/site-packages; fi
+	export PYTHONPATH=~/local/lib/python3.5/site-packages
+	easy_install --prefix=$HOME/local cffi
+
 nocuda: compile_nocuda test_nocuda
 
 compile: compile_nocuda lib/librtcudacore.so

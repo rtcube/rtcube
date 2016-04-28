@@ -8,7 +8,7 @@
 namespace Generator
 {
 
-void GenerateData(const std::vector<socket_info *> &sockets, int generator_id);
+void GenerateData(atomic_bool* should_exit_flag, const std::vector<socket_info *> &sockets, int generator_id);
 
 }
 

@@ -1,5 +1,6 @@
 from cffi import FFI
 import socket
+import sys
 
 ffi = FFI()
 
@@ -23,7 +24,10 @@ lib = ffi.dlopen('./lib/librtquery.so')
 
 def connect(addresses):
 	for addr in addresses:
-		yield socket.create_connection(addr)
+		try:
+			yield socket.create_connection(addr)
+		except:
+			print(addr + " is not responding", file = sys.stderr)
 
 class Cube:
 	def __init__(self, c_cube):
