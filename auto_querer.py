@@ -40,4 +40,4 @@ if __name__ == "__main__":
 	try:
 		main()
 	except KeyboardInterrupt:
-		print("Terminated by user", file = stderr)
+		print("Terminated by user", file = sys.stderr)
