@@ -38,6 +38,7 @@ def main():
 		print(line)
 		if stderrleft > 0:
 			print(line, file = sys.stderr)
+			stderrleft--
 		# print("result:", res[0], "time[ms]:", query_time)
 
 if __name__ == "__main__":
