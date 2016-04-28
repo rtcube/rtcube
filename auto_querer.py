@@ -41,3 +41,4 @@ if __name__ == "__main__":
 		main()
 	except KeyboardInterrupt:
 		print("Terminated by user", file = sys.stderr)
+		sys.exit(1)
