@@ -7,7 +7,7 @@ run:
 	./run.sh
 
 cffi:
-	source install_cffi.sh
+	/bin/bash -c "source install_cffi.sh"
 
 nocuda: compile_nocuda test_nocuda
 
