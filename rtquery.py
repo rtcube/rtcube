@@ -27,7 +27,7 @@ def connect(addresses):
 		try:
 			yield socket.create_connection(addr)
 		except:
-			print(addr + " is not responding", file = sys.stderr)
+			print(str(addr) + " is not responding", file = sys.stderr)
 
 class Cube:
 	def __init__(self, c_cube):

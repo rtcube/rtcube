@@ -47,7 +47,7 @@ int GeneratePackage(int x, int y, int generator_id, const std::vector<socket_inf
     return sendRow(sockets[socket_id], rows);
 }
 
-void GenerateData(atomic_bool* should_exit_flag, const std::vector<Generator::socket_info *> &sockets, int generator_id)
+void GenerateData(int* should_exit_flag, const std::vector<Generator::socket_info *> &sockets, int generator_id)
 {
     timespec ts_start, ts_end;
     clock_gettime(CLOCK_REALTIME, &ts_start);

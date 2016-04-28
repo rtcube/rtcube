@@ -1,13 +1,12 @@
 #include <iostream>
 #include <vector>
 #include <signal.h>
-#include <atomic>
 
 #include "generator.h"
 
 using namespace std;
 
-atomic_bool should_exit_flag = false;
+int should_exit_flag = 0;
 
 void usage() {
     std::cerr << "USAGE: " << std::endl;
@@ -16,7 +15,7 @@ void usage() {
 }
 
 void sigint_handler(int signum) {
-	*should_exit_flag = true;
+	should_exit_flag = 1;
 }
 
 int main(int argc, const char* argv[])
@@ -28,7 +27,7 @@ int main(int argc, const char* argv[])
         usage();
     }
 	
-	signal(SIGINT, signalHandler);
+	signal(SIGINT, sigint_handler);
 
     sockets = Generator::LoadAddressesFile(argv[1]);
 
@@ -42,7 +41,7 @@ int main(int argc, const char* argv[])
     }
 
     Generator::GenerateData(&should_exit_flag, sockets, generator_id);
-	if (*should_exit_flag) {
+	if (should_exit_flag) {
 		std::cerr << "Terminated by user" << std::endl;
 	}
 
