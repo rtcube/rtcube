@@ -9,6 +9,10 @@ run:
 cffi:
 	/bin/bash -c "source install_cffi.sh"
 
+init:
+	git submodule init
+	git submodule update
+
 nocuda: compile_nocuda test_nocuda
 
 compile: compile_nocuda lib/librtcudacore.so
