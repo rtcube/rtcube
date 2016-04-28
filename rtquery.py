@@ -26,6 +26,8 @@ def connect(addresses):
 	for addr in addresses:
 		try:
 			yield socket.create_connection(addr)
+		except KeyboardInterrupt:
+			raise;
 		except:
 			print(str(addr) + " is not responding", file = sys.stderr)
 
