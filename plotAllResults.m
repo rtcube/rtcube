@@ -1,0 +1,10 @@
+plot_results('results_4.txt');
+plot_results('results_8.txt');
+plot_results('results_12.txt');
+plot_results('results_16.txt');
+plot_results('results_20.txt');
+plot_results('results_24.txt');
+plot_results('results_28.txt');
+plot_results('results_32.txt');
+plot_results('results_36.txt');
+plot_results('results_40.txt');
