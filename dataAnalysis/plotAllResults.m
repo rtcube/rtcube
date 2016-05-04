@@ -60,3 +60,12 @@ xlabel('Number of nodes');
 % X(9,:) = plot_results('results36.txt', 36, 1, 2, 1);
 % X(10,:) = plot_results('results40.txt', 40, 1, 2, 2);
 
+figure;
+plotBandwidth('results4.txt', 4, 2, 2, 4);
+plotBandwidth('results8.txt', 8, 2, 2, 1);
+plotBandwidth('results16.txt', 16, 2, 2, 2);
+plotBandwidth('results20.txt', 20, 2, 2, 4);
+plotBandwidth('results24.txt', 24, 2, 2, 3);
+plotBandwidth('results28.txt', 28, 2, 2, 4);
+plotBandwidth('results32.txt', 32, 2, 2, 4);
+
