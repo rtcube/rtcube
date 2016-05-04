@@ -9,17 +9,17 @@ function X = plotBandwidth(filename, nodes, m, n, p)
 
     X = X(2:end, 1:2);
     X(:,2) = X(:,2)./1000;
-    X(:,2) = X(:,2).*128.*9;
+    X(:,2) = X(:,2).*128.*9./1000;
 
     ax = subplot(m, n, p);
 	plot(X(:, 1), X(:,2));
 	title(['Number of nodes = ' num2str(nodes)]);
 
-    ylim(ax, [0 1000]);
+    ylim(ax, [0 1]);
     xlim(ax, [100 500]);
     
     xlabel('Iteration');
-    ylabel('Speed [Megabits per second]');
+    ylabel('Speed [Gigabits per second]');
 
 
 end
