@@ -1,12 +1,18 @@
-function X = plot_results(filename, nodes)
+function X = plot_results(filename, nodes, m, n, p)
 
 	X = csvread(filename);
 	X = X(100:end, :);
     y = (X(:, 2) - X(:, 3) + abs(min( X(:, 2) - X(:, 3))));
     
-	figure;
+    ax = subplot(m, n, p);
 	plot(X(:, 1), y);
-	title(filename);
+	title(['Number of nodes = ' num2str(nodes)]);
     
-    X = [nodes, mean(y), X(:,1)\y, max(y), std(y), median(y)];
+    ylim(ax, [0 1000]);
+    xlim(ax, [100 500]);
+    
+    xlabel('Iteration');
+    ylabel('Time [ms]');
+    
+    X = [nodes, mean(y), X(:,1)\y, max(y), std(y), median(y), var(y)];
 end
