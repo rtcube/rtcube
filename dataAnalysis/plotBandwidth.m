@@ -13,16 +13,4 @@ function [x, y] = plotBandwidth(filename)
     
     x = X(:,1);
     y = X(:,2);
-
-%     ax = subplot(m, n, p);
-% 	plot(X(:, 1), X(:,2));
-% 	title(['Number of nodes = ' num2str(nodes)]);
-% 
-%     ylim(ax, [0 1]);
-%     xlim(ax, [100 500]);
-%     
-%     xlabel('Iteration');
-%     ylabel('Speed [Gigabits per second]');
-
-
 end

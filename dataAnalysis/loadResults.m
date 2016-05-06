@@ -11,5 +11,5 @@ function [X, x, y] = loadResults(filename, nodes)
     
     coefs = polyfit(X(:,1), y, 1);
     
-    X = [nodes, mean(y), coefs(1), max(y), std(y), median(y), var(y)];
+    X = [nodes, coefs(1), mean(y), max(y), min(y)];
 end
