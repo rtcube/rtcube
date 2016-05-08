@@ -23,23 +23,21 @@ def main():
 	addresses_file = sys.argv[1]
 	cubedef = open(sys.argv[2]).read()
 	current_time_ms = lambda: int(round(time.time() * 1000))
-	query = "SELECT MAX(m1), MAX(m2)"
+	query = "SELECT MAX(m1), COUNT(m2)"
 
 	addresses = parse_addresses(addresses_file)
 
+	start_time = current_time_ms()
 	stderrleft = 5
 	while True:
-		#start_time = current_time_ms()
 		res = rtq.query(addresses, cubedef, query)
-		#query_time = current_time_ms() - start_time
-
-		# TODO - ms?
-		line = str(res[0]) + "," + str(current_time_ms())
+		query_time = current_time_ms() - start_time
+		irrelevant_index, m1, count = res[0]
+		line = ",".join([str(m1), str(count), str(query_time)])
 		print(line)
 		if stderrleft > 0:
 			print(line, file = sys.stderr)
 			stderrleft-=1
-		# print("result:", res[0], "time[ms]:", query_time)
 
 if __name__ == "__main__":
 	try:
