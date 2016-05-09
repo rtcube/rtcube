@@ -57,18 +57,17 @@ hold off;
 figure;
 subplot(1, 2, 1);
 plot(X(:, 1), X(:, 2), 'LineWidth', 3);
-title('Slope coefficient');
 xlabel('Number of nodes');
 set(gca,'FontSize',16)
 
-subplot(1, 2, 2);
+p = subplot(1, 2, 2);
 hold on;
 
 plot(X(:, 1), X(:, 3), X(:, 1), X(:, 4), X(:, 1), X(:, 5), 'LineWidth', 3);
+set(p,'FontSize',16,'YTick',...
+    [0 100 200 300 400 500 600 700 800 900 1000 1100 1200 1300 1400 1500]);
 legend('Mean', 'Max', 'Min');
 
-
-title('Data statistics');
 xlabel('Number of nodes');
 ylabel('Time [ms]');
 set(gca,'FontSize',16)
