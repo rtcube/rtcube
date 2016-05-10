@@ -76,7 +76,7 @@ class Cube:
 		index = index / self.c_cube.mea_size
 
 		indexes = [0] * self.c_cube.dim_size
-
+	
 		for i in range(self.c_cube.dim_size - 1, 0, -1):
 			indexes[i] = index % self.c_cube.dim_ranges
 			index = index / self.c_cube.dim_ranges

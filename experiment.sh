@@ -6,9 +6,9 @@ then
   exit 1
 fi
 
-python3 auto_querer.py $1 experiment/cudebef > $3 &
+python3 auto_querer.py $1 experiment/cubedef > $3 &
 QPID=$!
-bin/data-generator $2 > $4 &
+bin/data-generator $2 > $4
 GPID=$!
 
 trap 'kill $QPID ; kill $GPID' SIGINT
