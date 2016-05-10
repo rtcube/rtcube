@@ -6,6 +6,7 @@ gcc
 gdb
 frankenfile
 __pycache__*
+*~
 
 # QtCreator project files
 rtcube.config
