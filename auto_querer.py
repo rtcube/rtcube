@@ -30,16 +30,18 @@ def main():
 	start_time = current_time_ms()
 	stderrleft = 5
 		
+	MAX = 30000
 	m1 = 0
-	while m1 < 600:
+	while m1 < MAX:
 		res = rtq.query(addresses, cubedef, query)
 		query_time = current_time_ms() - start_time
+		
+		if m1 >= 50 and m1 <= 60:
+			print("odpalac!", file = sys.stderr)
 		
 		m1 = res[0]
 		count = res[1]
 		line = ",".join([str(m1), str(count), str(query_time)])
-		if(m1 >= 600):
-			break
 		print(line)
 		if stderrleft > 0:
 			print(line, file = sys.stderr)
