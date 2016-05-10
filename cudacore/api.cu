@@ -4,8 +4,8 @@
 #include <vector>
 
 #define MEM_TO_FILL 0.8
-#define BLOCKS 32
-#define THREADS 32
+#define BLOCKS 1024
+#define THREADS 1024
 
 CudaCube::CudaCube(const IR::CubeDef& cubeDef): CubeImpl(cubeDef)
 {

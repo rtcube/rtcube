@@ -70,6 +70,12 @@ void AddPack(RTCube &cube, int vecCount, thrust::device_ptr<int> d_dims, thrust:
 	int *measuresPtr = cube.Measures.get();
 	int *dimensionsSizesPtr = cube.DimensionsSizes.get();
 
+	if(cube.VectorsCount + vecCount > cube.Capacity)
+	{
+		printf("Node is full\n\n");
+		return;
+	}
+
 	AddPackKernel << < cube.Blocks, cube.Threads >> > (codesPtr, measuresPtr, cube.DimensionsCount, dimensionsSizesPtr, cube.MeasuresCount,
 		cube.VectorsCount, cube.Capacity, vecCount, dimsPtr, measPtr);
 
