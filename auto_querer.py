@@ -30,14 +30,14 @@ def main():
 	start_time = current_time_ms()
 	stderrleft = 5
 		
-	while True:
+	m1 = 0
+	while m1 < 600:
 		res = rtq.query(addresses, cubedef, query)
 		query_time = current_time_ms() - start_time
 		
 		m1 = res[0]
 		count = res[1]
-		gen_id = res[2]
-		line = ",".join([str(gen_id), str(m1), str(count), str(query_time)])
+		line = ",".join([str(m1), str(count), str(query_time)])
 		if(m1 >= 600):
 			break
 		print(line)
@@ -45,12 +45,13 @@ def main():
 			print(line, file = sys.stderr)
 			stderrleft-=1
 			
-	query = "SELECT d1, COUNT(m2) WHERE time IN (%d, %d)" % (0, 100)
+			
+	print('-' * 50)
+	query = "SELECT d1, COUNT(m2)"
 	res = rtq.query(addresses, cubedef, query)
 	for i, v in res:
-		print("Index: ", i, "Value: ", v)		
-	print('-' * 50)	
-
+		print(str(i[0]) + "," + str(v))
+	print("Querer has ended", file = sys.stderr)
 		
 
 if __name__ == "__main__":
