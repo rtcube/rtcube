@@ -32,7 +32,8 @@ def main():
 	while True:
 		res = rtq.query(addresses, cubedef, query)
 		query_time = current_time_ms() - start_time
-		irrelevant_index, m1, count = res[0]
+		m1 = res[0]
+		count = res[1]
 		line = ",".join([str(m1), str(count), str(query_time)])
 		print(line)
 		if stderrleft > 0:
