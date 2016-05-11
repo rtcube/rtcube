@@ -30,7 +30,7 @@ def main():
 	start_time = current_time_ms()
 	stderrleft = 5
 		
-	MAX = 30000
+	MAX = 600
 	m1 = 0
 	while m1 < MAX:
 		res = rtq.query(addresses, cubedef, query)
